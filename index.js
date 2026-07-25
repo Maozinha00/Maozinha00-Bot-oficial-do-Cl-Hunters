@@ -9,14 +9,12 @@
  * 2. Execute: node bot.js
  */
 
-try {
-    require('dotenv').config();
-} catch (e) {
-    // dotenv é opcional caso o arquivo .env não exista
-}
+import dotenv from 'dotenv';
+dotenv.config();
 
-const express = require('express');
-const {
+import express from 'express';
+import fs from 'fs';
+import {
     Client,
     GatewayIntentBits,
     Partials,
@@ -25,12 +23,13 @@ const {
     ButtonStyle,
     ActionRowBuilder,
     StringSelectMenuBuilder,
+    StringSelectMenuOptionBuilder,
     ModalBuilder,
     TextInputBuilder,
     TextInputStyle,
     Events,
     PermissionsBitField
-} = require("discord.js");
+} from "discord.js";
 
 // ===============================
 // CONFIGURAÇÃO DE AMBIENTE & TOKEN
