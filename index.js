@@ -19,7 +19,7 @@ dotenv.config();
 
 // CONFIGURAÇÃO OFICIAL DO BOT FIVEZ & LUMENFALL
 export const CONFIG = {
-  token: process.env.DISCORD_TOKEN || process.env.TOKEN || process.env.BOT_TOKEN || "MTQ5MzU4MjY0NTQ2Mzc1ODgx.Gt2TZf.Dy7MPDGcWRQMmztWSVXyvoY_w2Q_N5Q-0h2-Eg",
+  token: process.env.DISCORD_TOKEN || process.env.TOKEN || process.env.BOT_TOKEN || "MTQ5MzU5ODI2MDU0NjM3NTg4MQ.G0Lo-0.LRw63qnvegH77ZgNh90jWPVnOTOON4TzBDQc3I",
   clientId: process.env.CLIENT_ID || "1493598260546375881",
   guildId: process.env.GUILD_ID || "1456655598031601727",
   canalRegistroId: process.env.CANAL_REGISTRO_ID || "1515448138385592361",
