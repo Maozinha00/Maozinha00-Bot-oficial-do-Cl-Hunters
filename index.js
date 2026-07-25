@@ -19,7 +19,7 @@ dotenv.config();
 
 // CONFIGURAÇÃO OFICIAL DO BOT FIVEZ & LUMENFALL
 export const CONFIG = {
-  token: process.env.DISCORD_TOKEN || process.env.TOKEN || process.env.DISCORD_BOT_TOKEN || process.env.BOT_TOKEN || "",
+  token: process.env.DISCORD_TOKEN || process.env.TOKEN || process.env.BOT_TOKEN || "MTQ5MzU4MjY0NTQ2Mzc1ODgx.Gt2TZf.Dy7MPDGcWRQMmztWSVXyvoY_w2Q_N5Q-0h2-Eg",
   clientId: process.env.CLIENT_ID || "1493598260546375881",
   guildId: process.env.GUILD_ID || "1456655598031601727",
   canalRegistroId: process.env.CANAL_REGISTRO_ID || "1515448138385592361",
@@ -72,13 +72,9 @@ export const CONFIG = {
   ]
 };
 
-// Express Keep-Alive 24/7
+// Express Keep-Alive
 const app = express();
 const PORT = process.env.PORT || 3000;
-
-app.get('/', (req, res) => {
-  res.send('🟢 Bot FiveZ & Lumenfall Keep-Alive 24/7!');
-});
 
 app.get('/health', (req, res) => {
   res.json({
@@ -87,10 +83,6 @@ app.get('/health', (req, res) => {
     userTag: client?.user?.tag || null,
     uptime: process.uptime()
   });
-});
-
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🌐 [HTTP SERVER] Keep-Alive rodando na porta ${PORT}`);
 });
 
 // Discord Client Setup
@@ -330,13 +322,8 @@ client.on(Events.InteractionCreate, async (interaction) => {
 });
 
 // Inicialização
-if (CONFIG.token && CONFIG.token.length > 20 && !CONFIG.token.includes("SEU_TOKEN") && !CONFIG.token.includes("....")) {
-  client.login(CONFIG.token).catch(err => {
-    console.error("❌ Erro ao logar bot no Discord:", err.message);
-    if (err.message.includes("invalid token") || err.message.includes("An invalid token")) {
-      console.log("👉 Por favor, defina a variável DISCORD_TOKEN com um Token válido do Discord Developer Portal.");
-    }
-  });
+if (CONFIG.token && !CONFIG.token.includes("SEU_TOKEN")) {
+  client.login(CONFIG.token).catch(err => console.error("❌ Erro ao logar bot:", err.message));
 } else {
-  console.log("⚠️ Token do bot não configurado em index.js. Insira seu token nas variáveis de ambiente (DISCORD_TOKEN).");
+  console.log("⚠️ Token do bot não configurado no .env ou index.js");
 }
