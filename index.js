@@ -1,329 +1,570 @@
-import {
-  Client,
-  GatewayIntentBits,
-  Partials,
-  EmbedBuilder,
-  ButtonBuilder,
-  ButtonStyle,
-  ActionRowBuilder,
-  StringSelectMenuBuilder,
-  ModalBuilder,
-  TextInputBuilder,
-  TextInputStyle,
-  Events
-} from 'discord.js';
-import express from 'express';
-import dotenv from 'dotenv';
+/**
+ * ============================================================================
+ * BOT AUTOMÁTICO DE REGISTRO, CIDADANIA & LIMPEZA DE TAGS DISCORD
+ * CLÃ HUNTERS & FAMÍLIA SOUZA (FIVEZ & LUMENFALL)
+ * ============================================================================
+ * 
+ * Como Rodar (SEM ARQUIVO .ENV):
+ * 1. Cole seu Token do Discord em BOT_TOKEN na linha 'const BOT_TOKEN = "..."'
+ * 2. Execute: node bot.js
+ */
 
-dotenv.config();
+try {
+    require('dotenv').config();
+} catch (e) {
+    // dotenv é opcional caso o arquivo .env não exista
+}
 
-// CONFIGURAÇÃO OFICIAL DO BOT FIVEZ & LUMENFALL
-export const CONFIG = {
-  token: process.env.DISCORD_TOKEN || process.env.TOKEN || process.env.BOT_TOKEN || "MTQ5MzU4MjY0NTQ2Mzc1ODgx.Gt2TZf.Dy7MPDGcWRQMmztWSVXyvoY_w2Q_N5Q-0h2-Eg",
-  clientId: process.env.CLIENT_ID || "1493598260546375881",
-  guildId: process.env.GUILD_ID || "1456655598031601727",
-  canalRegistroId: process.env.CANAL_REGISTRO_ID || "1515448138385592361",
-  canalAprovacaoId: process.env.CANAL_APROVACAO_ID || "1515448473246498866",
-  canalLogsId: process.env.CANAL_LOGS_ID || "1525000000000000000",
-  canalEntradaSaidaId: process.env.CANAL_ENTRADA_SAIDA_ID || "1524222632923496509",
-  cargoAmigosId: process.env.CARGO_AMIGOS_ID || "1515125842328424640",
-  cargoHuntersRecrutaId: process.env.CARGO_HUNTERS_RECRUTA_ID || "1515125826780135485",
-  cargosAdminsAprovadores: [
+const express = require('express');
+const {
+    Client,
+    GatewayIntentBits,
+    Partials,
+    EmbedBuilder,
+    ButtonBuilder,
+    ButtonStyle,
+    ActionRowBuilder,
+    StringSelectMenuBuilder,
+    ModalBuilder,
+    TextInputBuilder,
+    TextInputStyle,
+    Events,
+    PermissionsBitField
+} = require("discord.js");
+
+// ===============================
+// CONFIGURAÇÃO DE AMBIENTE & TOKEN
+// ===============================
+const TOKEN = limparToken(process.env.TOKEN);
+
+// ==============================
+// VALIDAÇÃO DE SEGURANÇA DO TOKEN
+// ==============================
+if (!TOKEN || TOKEN.trim() === "") {
+  console.error("\n❌ ======================================================= ❌");
+  console.error("  ERRO DE CONFIGURAÇÃO: A variável de ambiente TOKEN não foi encontrada!");
+  console.error("  ---------------------------------------------------------");
+  console.error("  Certifique-se de configurar a variável de ambiente TOKEN");
+  console.error("  no painel da sua hospedagem (Variables / Environment Variables)");
+  console.error("  ou no arquivo `.env` local na pasta do bot.");
+  console.error("❌ ======================================================= ❌\n");
+  process.exit(1);
+
+// ===============================
+// CONFIGURAÇÃO GERAL DO SISTEMA
+// ===============================
+const CONFIG = {
+    CLIENT_ID: process.env.CLIENT_ID || "1493598260546375881",
+    GUILD_ID: process.env.GUILD_ID || "1456655598031601727",
+    // IDs dos Canais do Servidor
+    CANAL_REGISTRO_ID: process.env.CANAL_REGISTRO_ID || "1515448138385592361",
+    CANAL_APROVACAO_ID: process.env.CANAL_APROVACAO_ID || "1515448473246498866",
+    CANAL_LOGS_ID: process.env.CANAL_LOGS_ID || "1525000000000000000",
+    CANAL_ENTRADA_SAIDA_ID: process.env.CANAL_ENTRADA_SAIDA_ID || "1524222632923496509",
+
+    // Cargos Iniciais
+    CARGO_AMIGOS_ID: process.env.CARGO_AMIGOS_ID || "1515125842328424640",
+    CARGO_HUNTERS_RECRUTA_ID: process.env.CARGO_HUNTERS_RECRUTA_ID || "1515125826780135485",
+
+    // Cargos Administradores Autorizados a Aprovar / Recusar
+    CARGOS_ADMINS_APROVADORES: [
     "1515125820836941985",
     "1515125822795546715"
-  ],
-  embedColor: "#2ECC71",
-  colorHunters: "#8E44AD",
-  footer: "FiveZ & Lumenfall • Sistema Automático Anti-Queda",
-  formatoApelido: "{TAG} {NOME} | {ID}",
-  grupos: [
+],
+
+    EMBED_COLOR: "#2ECC71",
+    COLOR_HUNTERS: "#8E44AD",
+    FOOTER: "FiveZ & Lumenfall • Sistema Automático Anti-Queda",
+    FORMATO_APELIDO: "{TAG} {NOME} | {ID}",
+
+    GRUPOS: [
     {
-      id: "grupo_souza",
-      name: "Família Souza",
-      roleId: "1515125828185493675",
-      emoji: "❤️",
-      tag: "|Souza|",
-      description: "Membros oficiais da Família Souza"
+        "id": "grupo_souza",
+        "name": "Família Souza",
+        "roleId": "1515125828185493675",
+        "emoji": "❤️",
+        "tag": "|Souza|",
+        "description": "Membros oficiais da Família Souza"
     },
     {
-      id: "grupo_hunters",
-      name: "Hunters FiveZ",
-      roleId: "1515125826780135485",
-      emoji: "🎯",
-      tag: "|Recruta|",
-      description: "Caçadores de elite Hunters FiveZ (Recruta)"
+        "id": "grupo_hunters",
+        "name": "Hunters FiveZ",
+        "roleId": "1515125826780135485",
+        "emoji": "🎯",
+        "tag": "|Recruta|",
+        "description": "Caçadores de elite Hunters FiveZ (Recruta)"
     },
     {
-      id: "grupo_comprador",
-      name: "Comprador FiveZ",
-      roleId: "1517662363266842725",
-      emoji: "🛒",
-      tag: "|CPD| FiveZ",
-      description: "Compradores oficiais FiveZ"
+        "id": "grupo_comprador",
+        "name": "Comprador FiveZ",
+        "roleId": "1517662363266842725",
+        "emoji": "🛒",
+        "tag": "|CPD| FiveZ",
+        "description": "Compradores oficiais FiveZ"
     },
     {
-      id: "grupo_amigos",
-      name: "Amigos",
-      roleId: "1515125842328424640",
-      emoji: "🤝",
-      tag: "|AMG|",
-      description: "Cargo inicial de entrada, Amigos e Visitantes"
+        "id": "grupo_amigos",
+        "name": "Amigos",
+        "roleId": "1515125842328424640",
+        "emoji": "🤝",
+        "tag": "|AMG|",
+        "description": "Cargo inicial de entrada, Amigos e Visitantes"
     }
-  ]
+]
 };
 
-// Express Keep-Alive
+// ===============================
+// SERVIDOR EXPRESS KEEP-ALIVE (RAILWAY / REPLIT / VPS)
+// ===============================
 const app = express();
-const PORT = process.env.PORT || 3000;
+
+app.get('/', (req, res) => {
+    res.send('🟢 Bot do Discord Keep-Alive está Rodando 24/7!');
+});
 
 app.get('/health', (req, res) => {
-  res.json({
-    status: 'ok',
-    botOnline: Boolean(client?.user),
-    userTag: client?.user?.tag || null,
-    uptime: process.uptime()
-  });
+    res.status(200).json({
+        status: 'OK',
+        botConnected: client.user ? true : false,
+        botUser: client.user ? client.user.tag : null,
+        uptime: Math.floor(process.uptime()),
+        timestamp: new Date().toISOString()
+    });
 });
 
-// Discord Client Setup
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`\n==================================================`);
+    console.log(`🌐 SERVIDOR HTTP ANTI-QUEDA ONLINE NA PORTA: ${PORT}`);
+    console.log(`🩺 Healthcheck: http://0.0.0.0:${PORT}/health`);
+    console.log(`==================================================\n`);
+});
+
+// ===============================
+// INSTÂNCIA DO CLIENTE DISCORD
+// ===============================
 const client = new Client({
-  intents: [
-    GatewayIntentBits.Guilds,
-    GatewayIntentBits.GuildMembers,
-    GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.MessageContent,
-    GatewayIntentBits.DirectMessages
-  ],
-  partials: [Partials.Channel, Partials.Message, Partials.GuildMember]
+    intents: [
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMembers,
+        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.MessageContent,
+        GatewayIntentBits.DirectMessages
+    ],
+    partials: [Partials.Channel, Partials.Message, Partials.GuildMember]
 });
 
-function formatarApelido(tag, nome, id) {
-  let nick = `${tag} ${nome} | ${id}`.trim();
-  if (nick.length > 32) {
-    const extra = tag.length + id.length + 4;
-    const maxNome = Math.max(1, 32 - extra);
-    nick = `${tag} ${nome.substring(0, maxNome)} | ${id}`.trim();
-  }
-  return nick.substring(0, 32);
+// ===============================
+// PROTEÇÃO ANTI-CRASH GLOBAL
+// ===============================
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('⚠️ [Anti-Crash] Rejeição não tratada capturada:', reason);
+});
+
+process.on('uncaughtException', (error, origin) => {
+    console.error('⚠️ [Anti-Crash] Exceção não capturada:', error);
+});
+
+// ===============================
+// FUNÇÕES AUXILIARES
+// ===============================
+
+/**
+ * Trunca o apelido para o limite máximo permitido pelo Discord (32 caracteres)
+ */
+function formatarApelidoSeguro(tag, nome, id) {
+    let nick = `${tag} ${nome} | ${id}`.trim();
+    if (nick.length > 32) {
+        const tamanhoExtra = tag.length + id.length + 4;
+        const maxNome = Math.max(1, 32 - tamanhoExtra);
+        const nomeCortado = nome.substring(0, maxNome);
+        nick = `${tag} ${nomeCortado} | ${id}`.trim();
+    }
+    return nick.substring(0, 32);
 }
 
-// ANTI-CRASH SYSTEM
-process.on('unhandledRejection', (reason) => {
-  console.error('[ANTI-CRASH] Unhandled Rejection:', reason);
-});
-process.on('uncaughtException', (err) => {
-  console.error('[ANTI-CRASH] Uncaught Exception:', err);
-});
+/**
+ * Verifica todos os membros do servidor.
+ * Se alguém tiver a tag da facção no apelido mas NÃO tiver o cargo no Discord, a tag é removida!
+ */
+async function verificarELimparTags(guild) {
+    let totalAnalisados = 0;
+    let tagsRemovidas = 0;
+    const modificados = [];
+
+    try {
+        const members = await guild.members.fetch();
+        for (const member of members.values()) {
+            if (member.user.bot) continue;
+            totalAnalisados++;
+
+            const nickname = member.nickname || member.displayName || '';
+
+            for (const grupo of CONFIG.GRUPOS) {
+                if (!grupo.tag || grupo.tag.trim() === '') continue;
+
+                const temTag = nickname.includes(grupo.tag);
+                const temCargo = member.roles.cache.has(grupo.roleId);
+
+                // SE TEM A TAG NO NOME, MAS NÃO TEM O CARGO NO DISCORD -> REMOVE A TAG
+                if (temTag && !temCargo) {
+                    let novoNick = nickname.replace(grupo.tag, '').trim();
+                    novoNick = novoNick.replace(/^[\s|\-]+|[\s|\-]+$/g, '').trim();
+
+                    try {
+                        const nickFinal = novoNick.length > 0 ? novoNick.substring(0, 32) : null;
+                        await member.setNickname(nickFinal);
+                        tagsRemovidas++;
+                        modificados.push({
+                            tagUsuario: member.user.tag,
+                            idUsuario: member.id,
+                            apelidoAntigo: nickname,
+                            apelidoNovo: nickFinal || member.user.username,
+                            grupoNome: grupo.name
+                        });
+                        console.log(`🧹 Tag '${grupo.tag}' removida de ${member.user.tag} (Sem o cargo '${grupo.name}')`);
+                    } catch (err) {
+                        console.error(`❌ Não foi possível alterar o apelido de ${member.user.tag}:`, err.message);
+                    }
+                }
+            }
+        }
+    } catch (err) {
+        console.error('Erro na função verificarELimparTags:', err);
+    }
+
+    return { totalAnalisados, tagsRemovidas, modificados };
+}
+
+// ===============================
+// EVENTOS DO BOT
+// ===============================
 
 client.once(Events.ClientReady, (c) => {
-  console.log(`✅ [FIVEZ BOT ONLINE] Logado como ${c.user.tag}`);
+    console.log(`🤖 BOT CONECTADO COMO: ${c.user.tag}`);
+    console.log(`📍 Canal de Registro: ${CONFIG.CANAL_REGISTRO_ID}`);
+    console.log(`⏳ Canal de Aprovação: ${CONFIG.CANAL_APROVACAO_ID}`);
 });
 
-// Entrada de Membro
+// Evento: Entrou novo membro
 client.on(Events.GuildMemberAdd, async (member) => {
-  try {
-    if (CONFIG.cargoAmigosId) {
-      await member.roles.add(CONFIG.cargoAmigosId).catch(() => {});
-    }
-    if (CONFIG.canalEntradaSaidaId) {
-      const channel = member.guild.channels.cache.get(CONFIG.canalEntradaSaidaId) ||
-        await member.guild.channels.fetch(CONFIG.canalEntradaSaidaId).catch(() => null);
-      if (channel && channel.isTextBased()) {
-        const embed = new EmbedBuilder()
-          .setColor(CONFIG.embedColor)
-          .setTitle('🚪 NOVO MORADOR CHEGOU NA CIDADE!')
-          .setDescription(`Bem-vindo(a) <@${member.id}> ao servidor!\n\n> 📝 Por favor, vá até <#${CONFIG.canalRegistroId}> para fazer seu registro.`)
-          .setThumbnail(member.user.displayAvatarURL())
-          .setFooter({ text: CONFIG.footer })
-          .setTimestamp();
-        await channel.send({ content: `<@${member.id}>`, embeds: [embed] }).catch(() => {});
-      }
-    }
-  } catch (err) {
-    console.error('Erro no GuildMemberAdd:', err);
-  }
-});
-
-// Saída de Membro
-client.on(Events.GuildMemberRemove, async (member) => {
-  try {
-    if (CONFIG.canalEntradaSaidaId) {
-      const channel = member.guild.channels.cache.get(CONFIG.canalEntradaSaidaId) ||
-        await member.guild.channels.fetch(CONFIG.canalEntradaSaidaId).catch(() => null);
-      if (channel && channel.isTextBased()) {
-        const embed = new EmbedBuilder()
-          .setColor('#E74C3C')
-          .setTitle('🚪 UM MORADOR SAIU DA CIDADE')
-          .setDescription(`O membro **${member.user.tag}** (<@${member.id}>) saiu do servidor.`)
-          .setThumbnail(member.user.displayAvatarURL())
-          .setFooter({ text: CONFIG.footer })
-          .setTimestamp();
-        await channel.send({ embeds: [embed] }).catch(() => {});
-      }
-    }
-  } catch (err) {
-    console.error('Erro no GuildMemberRemove:', err);
-  }
-});
-
-// Interações Botões & Modais
-client.on(Events.InteractionCreate, async (interaction) => {
-  try {
-    if (interaction.isButton()) {
-      if (interaction.customId === 'iniciar_registro') {
-        const select = new StringSelectMenuBuilder()
-          .setCustomId('select_grupo_registro')
-          .setPlaceholder('Selecione seu Grupo / Família...');
-
-        CONFIG.grupos.forEach(g => {
-          select.addOptions({
-            label: g.name,
-            value: g.id,
-            description: g.description,
-            emoji: g.emoji
-          });
-        });
-
-        const row = new ActionRowBuilder().addComponents(select);
-        await interaction.reply({
-          content: '👇 **Escolha abaixo qual grupo você pertence:**',
-          components: [row],
-          ephemeral: true
-        });
-      }
-
-      if (interaction.customId.startsWith('aprovar_') || interaction.customId.startsWith('rejeitar_')) {
-        const isApprove = interaction.customId.startsWith('aprovar_');
-        const [action, userId, grupoId] = interaction.customId.split('_');
-
-        const memberAprovador = interaction.member;
-        const temPermissao = CONFIG.cargosAdminsAprovadores.some(roleId => memberAprovador?.roles?.cache?.has(roleId));
-
-        if (!temPermissao) {
-          return interaction.reply({ content: '❌ Você não tem permissão para aprovar registros.', ephemeral: true });
+    try {
+        if (CONFIG.CARGO_AMIGOS_ID) {
+            await member.roles.add(CONFIG.CARGO_AMIGOS_ID).catch((err) => {
+                console.error(`⚠️ Erro ao adicionar cargo inicial ao membro ${member.user.tag}:`, err.message);
+            });
         }
 
-        const targetMember = await interaction.guild.members.fetch(userId).catch(() => null);
-        const grupo = CONFIG.grupos.find(g => g.id === grupoId);
+        if (CONFIG.CANAL_ENTRADA_SAIDA_ID) {
+            const channel = member.guild.channels.cache.get(CONFIG.CANAL_ENTRADA_SAIDA_ID) || 
+                            await member.guild.channels.fetch(CONFIG.CANAL_ENTRADA_SAIDA_ID).catch(() => null);
 
-        if (isApprove) {
-          if (targetMember && grupo) {
-            await targetMember.roles.add(grupo.roleId).catch(() => {});
-            if (CONFIG.cargoAmigosId) await targetMember.roles.remove(CONFIG.cargoAmigosId).catch(() => {});
-          }
+            if (channel) {
+                const embed = new EmbedBuilder()
+                    .setColor(CONFIG.EMBED_COLOR)
+                    .setTitle('🚪 NOVO MORADOR CHEGOU NA CIDADE!')
+                    .setDescription(`Bem-vindo(a) <@${member.id}> ao servidor!\n\n> 📝 Por favor, dirija-se ao canal <#${CONFIG.CANAL_REGISTRO_ID}> para realizar seu **Registro de Cidadania** e escolher seu grupo.`)
+                    .setThumbnail(member.user.displayAvatarURL({ dynamic: true }))
+                    .setFooter({ text: CONFIG.FOOTER })
+                    .setTimestamp();
 
-          const embedUpdated = EmbedBuilder.from(interaction.message.embeds[0])
-            .setColor('#2ECC71')
-            .setTitle('✅ REGISTRO APROVADO!')
-            .setFooter({ text: `Aprovado por ${interaction.user.tag}` });
-
-          await interaction.update({ embeds: [embedUpdated], components: [] });
-          if (targetMember) {
-            await targetMember.send(`🎉 Seus dados foram **APROVADOS** no servidor FiveZ! Seja bem-vindo(a)!`).catch(() => {});
-          }
-        } else {
-          const embedUpdated = EmbedBuilder.from(interaction.message.embeds[0])
-            .setColor('#E74C3C')
-            .setTitle('❌ REGISTRO REJEITADO')
-            .setFooter({ text: `Rejeitado por ${interaction.user.tag}` });
-
-          await interaction.update({ embeds: [embedUpdated], components: [] });
-          if (targetMember) {
-            await targetMember.send(`❌ Seu registro foi **REJEITADO**. Entre em contato com a equipe de suporte.`).catch(() => {});
-          }
+                await channel.send({ content: `<@${member.id}>`, embeds: [embed] }).catch(() => {});
+            }
         }
-      }
+    } catch (err) {
+        console.error('Erro no evento GuildMemberAdd:', err);
+    }
+});
+
+// Comandos de Texto (!painel, !verificartags, !ping)
+client.on(Events.MessageCreate, async (message) => {
+    if (message.author.bot || !message.guild) return;
+
+    const command = message.content.toLowerCase().trim();
+
+    // Comando !ping
+    if (command === '!ping' || command === '!status') {
+        return message.reply(`🏓 **Pong!** Latência da API: \`${Math.round(client.ws.ping)}ms\`!`);
     }
 
-    if (interaction.isStringSelectMenu()) {
-      if (interaction.customId === 'select_grupo_registro') {
-        const grupoId = interaction.values[0];
-        const modal = new ModalBuilder()
-          .setCustomId(`modal_registro_${grupoId}`)
-          .setTitle('📝 Formulário de Registro FiveZ');
+    // Comando !painel
+    if (command === '!painel' || command === '!postarpainel') {
+        if (!message.member.permissions.has(PermissionsBitField.Flags.Administrator)) {
+            return message.reply('❌ Apenas administradores podem postar o painel de registro.');
+        }
 
-        const inputNome = new TextInputBuilder()
-          .setCustomId('nome_ic')
-          .setLabel('Nome no Personagem (IC):')
-          .setStyle(TextInputStyle.Short)
-          .setPlaceholder('Ex: Gabriel Souza')
-          .setRequired(true);
+        const guildIcon = message.guild.iconURL({ dynamic: true }) || 'https://i.imgur.com/8Q8S4Zb.png';
 
-        const inputId = new TextInputBuilder()
-          .setCustomId('id_cidade')
-          .setLabel('ID da Cidade (Passaporte):')
-          .setStyle(TextInputStyle.Short)
-          .setPlaceholder('Ex: 1024')
-          .setRequired(true);
+        const embed = new EmbedBuilder()
+            .setColor(CONFIG.EMBED_COLOR)
+            .setAuthor({ name: '👑 FAMÍLIA SOUZA INFINITA 👑', iconURL: guildIcon })
+            .setTitle('🏡 Sistema de Registro — Cidadania & Grupos')
+            .setThumbnail(guildIcon)
+            .setDescription(`
+# **Seja bem-vindo à nossa Comunidade!**
 
-        modal.addComponents(
-          new ActionRowBuilder().addComponents(inputNome),
-          new ActionRowBuilder().addComponents(inputId)
-        );
+📢 **AVISO IMPORTANTE PARA TODOS (@everyone):**
+> ⚠️ **PRAZO LIMITE DE REGISTRO:** Todo membro que entrar no servidor tem um prazo máximo de **3 dias** para realizar o registro de cidadania.
+> 🚫 Se você passar de **3 dias** no servidor sem realizar o seu registro (ficando sem os cargos dos grupos), você será **kickado automaticamente** pelo sistema!
 
-        await interaction.showModal(modal);
-      }
-    }
+Para desbloquear todos os canais do servidor e registrar sua cidadania, selecione seu grupo abaixo.
 
-    if (interaction.isModalSubmit()) {
-      if (interaction.customId.startsWith('modal_registro_')) {
-        const grupoId = interaction.customId.replace('modal_registro_', '');
-        const nome = interaction.fields.getTextInputValue('nome_ic').trim();
-        const idCidade = interaction.fields.getTextInputValue('id_cidade').trim();
-        const grupo = CONFIG.grupos.find(g => g.id === grupoId);
+🎁 **Benefícios ao registrar:**
+> ✅ **Cargo do seu Grupo escolhido**
+> 🏷️ **Apelido Atualizado:** Com a tag da facção, seu Nome e ID
+> 🔓 **Liberação imediata** dos canais e categorias do servidor
 
-        if (!grupo) return interaction.reply({ content: '❌ Grupo inválido.', ephemeral: true });
-
-        const apelidoFormatado = formatarApelido(grupo.tag, nome, idCidade);
-        await interaction.member.setNickname(apelidoFormatado).catch(() => {});
-
-        const canalAprovacao = interaction.guild.channels.cache.get(CONFIG.canalAprovacaoId);
-        if (canalAprovacao) {
-          const embedAprovacao = new EmbedBuilder()
-            .setColor(CONFIG.embedColor)
-            .setTitle('📋 NOVO REGISTRO PARA APROVAÇÃO')
-            .setThumbnail(interaction.user.displayAvatarURL())
-            .addFields(
-              { name: '👤 Usuário Discord:', value: `<@${interaction.user.id}> (${interaction.user.tag})`, inline: true },
-              { name: '🆔 ID Discord:', value: `\`${interaction.user.id}\``, inline: true },
-              { name: '🎭 Nome IC:', value: `\`${nome}\``, inline: true },
-              { name: '🪪 ID Cidade:', value: `\`${idCidade}\``, inline: true },
-              { name: '🏷️ Grupo Solicitado:', value: `${grupo.emoji} **${grupo.name}**`, inline: true },
-              { name: '🏷️ Apelido Gerado:', value: `\`${apelidoFormatado}\``, inline: false }
-            )
+👇 *Clique no botão abaixo, escolha seu grupo e preencha o formulário!*
+`)
+            .setFooter({ text: CONFIG.FOOTER })
             .setTimestamp();
 
-          const btnAprovar = new ButtonBuilder()
-            .setCustomId(`aprovar_${interaction.user.id}_${grupo.id}`)
-            .setLabel('Aprovar')
-            .setStyle(ButtonStyle.Success)
-            .setEmoji('✅');
+        const row = new ActionRowBuilder().addComponents(
+            new ButtonBuilder()
+                .setCustomId('btn_iniciar_registro')
+                .setLabel('Realizar Registro')
+                .setStyle(ButtonStyle.Success)
+                .setEmoji('🏡')
+        );
 
-          const btnRejeitar = new ButtonBuilder()
-            .setCustomId(`rejeitar_${interaction.user.id}_${grupo.id}`)
-            .setLabel('Rejeitar')
-            .setStyle(ButtonStyle.Danger)
-            .setEmoji('❌');
+        await message.channel.send({ content: '@everyone', embeds: [embed], components: [row] });
+        return message.reply('✅ Painel de registro publicado com sucesso!');
+    }
 
-          const row = new ActionRowBuilder().addComponents(btnAprovar, btnRejeitar);
-
-          await canalAprovacao.send({ embeds: [embedAprovacao], components: [row] });
+    // Comando !verificartags (Limpeza de membros sem cargo)
+    if (command === '!verificartags' || command === '!limpartags' || command === '!checartags') {
+        if (!message.member.permissions.has(PermissionsBitField.Flags.Administrator)) {
+            return message.reply('❌ Apenas administradores podem executar a verificação de tags.');
         }
 
-        await interaction.reply({
-          content: '✅ **Seu formulário foi enviado com sucesso!** Aguarde a aprovação de um Administrador.',
-          ephemeral: true
-        });
-      }
+        const statusMsg = await message.reply('🔍 **Verificando membros e removendo tags de quem está sem cargo...**');
+        const res = await verificarELimparTags(message.guild);
+
+        const embed = new EmbedBuilder()
+            .setColor(CONFIG.EMBED_COLOR)
+            .setTitle('🧹 Limpeza e Verificação de Tags Concluída')
+            .addFields(
+                { name: '👥 Membros Analisados', value: `${res.totalAnalisados}`, inline: true },
+                { name: '🏷️ Tags Removidas', value: `${res.tagsRemovidas}`, inline: true }
+            )
+            .setFooter({ text: CONFIG.FOOTER })
+            .setTimestamp();
+
+        if (res.modificados.length > 0) {
+            const amostra = res.modificados.slice(0, 5).map(m => `• <@${m.idUsuario}>: \`${m.apelidoAntigo}\` ➔ \`${m.apelidoNovo}\``).join('\n');
+            embed.addFields({ name: '📝 Membros Ajustados (Amostra)', value: amostra + (res.modificados.length > 5 ? `\n*...e mais ${res.modificados.length - 5} membros.*`: ''), inline: false });
+        }
+
+        await statusMsg.edit({ content: '✅ **Varredura finalizada!**', embeds: [embed] });
     }
-  } catch (err) {
-    console.error('Erro na interacao:', err);
-  }
 });
 
-// Inicialização
-if (CONFIG.token && !CONFIG.token.includes("SEU_TOKEN")) {
-  client.login(CONFIG.token).catch(err => console.error("❌ Erro ao logar bot:", err.message));
-} else {
-  console.log("⚠️ Token do bot não configurado no .env ou index.js");
-}
+// Interações (Botões, Seleção de Grupo, Formulário e Aprovação)
+client.on(Events.InteractionCreate, async (interaction) => {
+    try {
+        if (interaction.isButton()) {
+            if (interaction.customId === 'btn_iniciar_registro') {
+                const selectMenu = new StringSelectMenuBuilder()
+                    .setCustomId('select_grupo_registro')
+                    .setPlaceholder('🎯 Escolha o seu Grupo / Facção...')
+                    .addOptions(
+                        CONFIG.GRUPOS.map(g => ({
+                            label: g.name,
+                            value: g.roleId,
+                            description: g.description,
+                            emoji: g.emoji
+                        }))
+                    );
+
+                const row = new ActionRowBuilder().addComponents(selectMenu);
+
+                return interaction.reply({
+                    content: '👇 **Selecione abaixo qual grupo você pertence:**',
+                    components: [row],
+                    ephemeral: true
+                });
+            }
+
+            if (interaction.customId.startsWith('btn_aprovar_') || interaction.customId.startsWith('btn_recusar_')) {
+                const isApprove = interaction.customId.startsWith('btn_aprovar_');
+                
+                const hasAdminRole = CONFIG.CARGOS_ADMINS_APROVADORES.some(roleId => interaction.member.roles.cache.has(roleId)) ||
+                                     interaction.member.permissions.has(PermissionsBitField.Flags.Administrator);
+
+                if (!hasAdminRole) {
+                    return interaction.reply({ content: '❌ Você não tem permissão para aprovar ou recusar registros.', ephemeral: true });
+                }
+
+                const embed = interaction.message.embeds[0];
+                if (!embed) return interaction.reply({ content: '❌ Erro ao ler embed de registro.', ephemeral: true });
+
+                let userId = null;
+                const userDiscordField = embed.fields?.find(f => f.name.includes('Usuário Discord'));
+                if (userDiscordField) {
+                    const m = userDiscordField.value.match(/<@!?(\d+)>/);
+                    if (m) userId = m[1];
+                }
+
+                if (!userId) {
+                    userId = interaction.customId.replace('btn_aprovar_', '').replace('btn_recusar_', '');
+                }
+
+                if (!userId) return interaction.reply({ content: '❌ Usuário não localizado no formulário.', ephemeral: true });
+
+                const member = await interaction.guild.members.fetch(userId).catch(() => null);
+                if (!member) {
+                    return interaction.reply({ content: '❌ Membro não encontrado no servidor (pode ter saído).', ephemeral: true });
+                }
+
+                const nomeField = embed.fields?.find(f => f.name.includes('Nome no Jogo'))?.value?.replace(/\*\*/g, '') || 'N/A';
+                const idField = embed.fields?.find(f => f.name.includes('ID no Jogo'))?.value?.replace(/\*\*/g, '') || 'N/A';
+                const grupoField = embed.fields?.find(f => f.name.includes('Grupo Escolhido'))?.value || '';
+
+                let matchedGroup = CONFIG.GRUPOS[0];
+                for (const g of CONFIG.GRUPOS) {
+                    if (grupoField.includes(g.name)) {
+                        matchedGroup = g;
+                        break;
+                    }
+                }
+
+                if (isApprove) {
+                    const finalNickname = formatarApelidoSeguro(matchedGroup.tag, nomeField, idField);
+
+                    try {
+                        await member.setNickname(finalNickname);
+                    } catch (e) {
+                        console.error(`⚠️ Erro ao alterar apelido de ${member.user.tag}:`, e.message);
+                    }
+
+                    try {
+                        await member.roles.add(matchedGroup.roleId);
+                    } catch (e) {
+                        console.error(`⚠️ Erro ao adicionar cargo ${matchedGroup.name} a ${member.user.tag}:`, e.message);
+                    }
+
+                    const approvedEmbed = EmbedBuilder.from(embed)
+                        .setColor('#2ECC71')
+                        .setTitle('✅ Registro & Apelido Aprovados')
+                        .setDescription('O membro preencheu o formulário de cidadania e foi **APROVADO**.')
+                        .addFields({ name: '👮 Avaliado por', value: `<@${interaction.user.id}>`, inline: false });
+
+                    await interaction.message.edit({ embeds: [approvedEmbed], components: [] });
+
+                    await member.send(`🎉 **Parabéns!** Seu registro no grupo **${matchedGroup.name}** foi aprovado no servidor **${interaction.guild.name}**! Seu apelido foi atualizado para \`${finalNickname}\`.`).catch(() => {});
+
+                    await interaction.reply({ content: `✅ Registro de <@${userId}> aprovado com sucesso!`, ephemeral: true });
+                } else {
+                    const rejectedEmbed = EmbedBuilder.from(embed)
+                        .setColor('#E74C3C')
+                        .setTitle('❌ Registro Recusado')
+                        .setDescription('O membro preencheu o formulário de cidadania e foi **RECUSADO**.')
+                        .addFields({ name: '👮 Avaliado por', value: `<@${interaction.user.id}>`, inline: false });
+
+                    await interaction.message.edit({ embeds: [rejectedEmbed], components: [] });
+
+                    await member.send(`❌ Seu registro no servidor **${interaction.guild.name}** foi recusado pela administração.`).catch(() => {});
+
+                    await interaction.reply({ content: `❌ Registro de <@${userId}> recusado.`, ephemeral: true });
+                }
+            }
+        }
+
+        if (interaction.isStringSelectMenu() && interaction.customId === 'select_grupo_registro') {
+            const roleId = interaction.values[0];
+            const grupoObj = CONFIG.GRUPOS.find(g => g.roleId === roleId) || CONFIG.GRUPOS[0];
+
+            const modal = new ModalBuilder()
+                .setCustomId(`modal_registro_${grupoObj.roleId}`)
+                .setTitle(`Formulário — ${grupoObj.name.substring(0, 30)}`);
+
+            const inputNome = new TextInputBuilder()
+                .setCustomId('input_nome_jogo')
+                .setLabel('Seu Nome / Apelido no Jogo')
+                .setPlaceholder('Ex: Bruno Souza')
+                .setStyle(TextInputStyle.Short)
+                .setMaxLength(20)
+                .setRequired(true);
+
+            const inputId = new TextInputBuilder()
+                .setCustomId('input_id_jogo')
+                .setLabel('Seu ID numérico no Jogo')
+                .setPlaceholder('Ex: 1234')
+                .setStyle(TextInputStyle.Short)
+                .setMaxLength(8)
+                .setRequired(true);
+
+            const inputContratante = new TextInputBuilder()
+                .setCustomId('input_contratante')
+                .setLabel('Quem te contratou / convidou?')
+                .setPlaceholder('Ex: Liderança / Souza')
+                .setStyle(TextInputStyle.Short)
+                .setMaxLength(30)
+                .setRequired(true);
+
+            modal.addComponents(
+                new ActionRowBuilder().addComponents(inputNome),
+                new ActionRowBuilder().addComponents(inputId),
+                new ActionRowBuilder().addComponents(inputContratante)
+            );
+
+            await interaction.showModal(modal);
+        }
+
+        if (interaction.isModalSubmit() && interaction.customId.startsWith('modal_registro_')) {
+            const roleId = interaction.customId.replace('modal_registro_', '');
+            const grupoObj = CONFIG.GRUPOS.find(g => g.roleId === roleId) || CONFIG.GRUPOS[0];
+
+            const nomeJogo = interaction.fields.getTextInputValue('input_nome_jogo').trim();
+            const idJogo = interaction.fields.getTextInputValue('input_id_jogo').trim();
+            const contratante = interaction.fields.getTextInputValue('input_contratante').trim();
+
+            const finalNickname = formatarApelidoSeguro(grupoObj.tag, nomeJogo, idJogo);
+
+            const embedAprovacao = new EmbedBuilder()
+                .setColor('#F1C40F')
+                .setTitle('⏳ Novo Registro Aguardando Aprovação')
+                .addFields(
+                    { name: '👤 Usuário Discord', value: `<@${interaction.user.id}> (${interaction.user.tag})`, inline: true },
+                    { name: '🎯 Grupo Escolhido', value: `🎯 **${grupoObj.name}**\n(Tag: \`${grupoObj.tag}\`)`, inline: false },
+                    { name: '📝 Nome no Jogo', value: `**${nomeJogo}**`, inline: true },
+                    { name: '🔢 ID no Jogo', value: `**${idJogo}**`, inline: true },
+                    { name: '🤝 Quem te Contratou', value: `**${contratante}**`, inline: false },
+                    { name: '🏷️ Apelido a Aplicar', value: `\`${finalNickname}\``, inline: false }
+                )
+                .setFooter({ text: CONFIG.FOOTER })
+                .setTimestamp();
+
+            const rowAprovacao = new ActionRowBuilder().addComponents(
+                new ButtonBuilder()
+                    .setCustomId(`btn_aprovar_${interaction.user.id}`)
+                    .setLabel('Aprovar Cidadania')
+                    .setStyle(ButtonStyle.Success)
+                    .setEmoji('✅'),
+                new ButtonBuilder()
+                    .setCustomId(`btn_recusar_${interaction.user.id}`)
+                    .setLabel('Recusar Cidadania')
+                    .setStyle(ButtonStyle.Danger)
+                    .setEmoji('❌')
+            );
+
+            const aprovacaoChannel = interaction.guild.channels.cache.get(CONFIG.CANAL_APROVACAO_ID) ||
+                                     await interaction.guild.channels.fetch(CONFIG.CANAL_APROVACAO_ID).catch(() => null);
+
+            if (aprovacaoChannel) {
+                await aprovacaoChannel.send({ embeds: [embedAprovacao], components: [rowAprovacao] });
+            }
+
+            await interaction.reply({
+                content: `✅ **Formulário enviado com sucesso!**\nSua solicitação para o grupo **${grupoObj.name}** foi enviada para a Administração. Aguarde a liberação dos cargos!`,
+                ephemeral: true
+            });
+        }
+    } catch (err) {
+        console.error('Erro ao processar interação:', err);
+    }
+});
+
+// Login no Discord
+client.login(TOKEN).catch((err) => {
+    console.error("❌ ERRO AO FAZER LOGIN NO DISCORD:", err.message);
+});
