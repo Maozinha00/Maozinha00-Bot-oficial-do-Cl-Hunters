@@ -70,6 +70,14 @@ const CONFIG = {
     "1515125822795546715"
 ],
 
+    // Cargos Notificados ao Postar o Painel de Ausência (Líder, Gerente, Membro, Recruta)
+    CARGOS_NOTIFICACAO_AUSENCIA: [
+    "1527848364496912404",
+    "1523277774436171796",
+    "1528075981078663259",
+    "1515125826780135485"
+],
+
     EMBED_COLOR: "#2ECC71",
     EMBED_COLOR_AUSENCIA: "#E67E22",
     COLOR_HUNTERS: "#8E44AD",
@@ -375,9 +383,12 @@ Caso você vá ficar ausente por **mais de 2 dias**, é obrigatório preencher o
                 .setEmoji('📝')
         );
 
+        // Monta as menções de todos os cargos configurados (Líder, Gerente, Membros, Recruta)
+        const mencoes = CONFIG.CARGOS_NOTIFICACAO_AUSENCIA.map(id => '<@&' + id + '>').join(' ');
+
         // Se houver canal específico configurado, envia nele, senão envia no canal atual
         const targetChannel = message.guild.channels.cache.get(CONFIG.CANAL_PAINEL_AUSENCIA_ID) || message.channel;
-        await targetChannel.send({ embeds: [embedAusencia], components: [rowAusencia] });
+        await targetChannel.send({ content: mencoes, embeds: [embedAusencia], components: [rowAusencia] });
 
         if (targetChannel.id !== message.channel.id) {
             return message.reply(`✅ Painel de Ausência publicado com sucesso no canal <#${CONFIG.CANAL_PAINEL_AUSENCIA_ID}>!`);
