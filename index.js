@@ -1,11 +1,11 @@
 /**
  * ============================================================================
- * BOT AUTOMÁTICO DE REGISTRO, CIDADANIA & LIMPEZA DE TAGS DISCORD
+ * BOT AUTOMÁTICO DE REGISTRO, CIDADANIA, AUSÊNCIA & LIMPEZA DE TAGS DISCORD
  * CLÃ HUNTERS & FAMÍLIA SOUZA (FIVEZ & LUMENFALL)
  * ============================================================================
  * 
- * Como Rodar (SEM ARQUIVO .ENV):
- * 1. Cole seu Token do Discord em BOT_TOKEN na linha 'const BOT_TOKEN = "..."'
+ * Como Rodar:
+ * 1. Configure seu Token do Discord na variável DISCORD_TOKEN ou na linha BOT_TOKEN.
  * 2. Execute: node bot.js
  */
 
@@ -13,7 +13,6 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 import express from 'express';
-import fs from 'fs';
 import {
     Client,
     GatewayIntentBits,
@@ -23,7 +22,6 @@ import {
     ButtonStyle,
     ActionRowBuilder,
     StringSelectMenuBuilder,
-    StringSelectMenuOptionBuilder,
     ModalBuilder,
     TextInputBuilder,
     TextInputStyle,
@@ -34,7 +32,6 @@ import {
 // ===============================
 // CONFIGURAÇÃO DE AMBIENTE & TOKEN
 // ===============================
-// 👉 TOKEN DO DISCORD (configurado via Railway Variables / fallback direto):
 const BOT_TOKEN = "SEU_TOKEN_AQUI";
 
 const TOKEN = process.env.DISCORD_TOKEN || process.env.TOKEN || process.env.DISCORD_BOT_TOKEN || process.env.BOT_TOKEN || BOT_TOKEN;
@@ -42,7 +39,7 @@ const PORT = process.env.PORT || 3000;
 
 if (!TOKEN || TOKEN.trim() === "" || TOKEN.includes("COLE_SEU_TOKEN") || TOKEN.includes("SEU_TOKEN_AQUI")) {
     console.error("\n❌ ERRO CRÍTICO: TOKEN DO DISCORD NÃO ENCONTRADO!");
-    console.error("👉 Defina a variável 'DISCORD_TOKEN' ou 'TOKEN' no painel de Variables do Railway.com ou no código.\n");
+    console.error("👉 Defina a variável 'DISCORD_TOKEN' no seu painel de hospedagem ou no código.\n");
     process.exit(1);
 }
 
@@ -52,11 +49,16 @@ if (!TOKEN || TOKEN.trim() === "" || TOKEN.includes("COLE_SEU_TOKEN") || TOKEN.i
 const CONFIG = {
     CLIENT_ID: process.env.CLIENT_ID || "1493598260546375881",
     GUILD_ID: process.env.GUILD_ID || "1456655598031601727",
+    
     // IDs dos Canais do Servidor
     CANAL_REGISTRO_ID: process.env.CANAL_REGISTRO_ID || "1515448138385592361",
     CANAL_APROVACAO_ID: process.env.CANAL_APROVACAO_ID || "1515448473246498866",
     CANAL_LOGS_ID: process.env.CANAL_LOGS_ID || "1515448473246498866",
     CANAL_ENTRADA_SAIDA_ID: process.env.CANAL_ENTRADA_SAIDA_ID || "1524222632923496509",
+    
+    // IDs Exclusivos para o Painel de Ausência
+    CANAL_PAINEL_AUSENCIA_ID: process.env.CANAL_PAINEL_AUSENCIA_ID || "1531070382365343774",
+    CANAL_AUSENCIA_LOGS_ID: process.env.CANAL_AUSENCIA_LOGS_ID || "1531670383483158700",
 
     // Cargos Iniciais
     CARGO_AMIGOS_ID: process.env.CARGO_AMIGOS_ID || "1515125842328424640",
@@ -69,44 +71,45 @@ const CONFIG = {
 ],
 
     EMBED_COLOR: "#2ECC71",
+    EMBED_COLOR_AUSENCIA: "#E67E22",
     COLOR_HUNTERS: "#8E44AD",
-    FOOTER: "FiveZ & Lumenfall • Sistema Automático Anti-Queda",
+    FOOTER: "FiveZ & Lumenfall • Família Hunters • Anti-Queda",
     FORMATO_APELIDO: "{TAG} {NOME} | {ID}",
 
     GRUPOS: [
-    {
-        "id": "grupo_souza",
-        "name": "Família Souza",
-        "roleId": "1515125828185493675",
-        "emoji": "❤️",
-        "tag": "|Souza|",
-        "description": "Membros oficiais da Família Souza"
-    },
-    {
-        "id": "grupo_hunters",
-        "name": "Hunters FiveZ",
-        "roleId": "1515125826780135485",
-        "emoji": "🎯",
-        "tag": "|Recruta|",
-        "description": "Caçadores de elite Hunters FiveZ (Recruta)"
-    },
-    {
-        "id": "grupo_comprador",
-        "name": "Comprador FiveZ",
-        "roleId": "1517662363266842725",
-        "emoji": "🛒",
-        "tag": "|CPD| FiveZ",
-        "description": "Compradores oficiais FiveZ"
-    },
-    {
-        "id": "grupo_amigos",
-        "name": "Amigos",
-        "roleId": "1515125842328424640",
-        "emoji": "🤝",
-        "tag": "|AMG|",
-        "description": "Cargo inicial de entrada, Amigos e Visitantes"
-    }
-]
+        {
+            "id": "grupo_souza",
+            "name": "Família Souza",
+            "roleId": "1515125828185493675",
+            "emoji": "❤️",
+            "tag": "|Souza|",
+            "description": "Membros oficiais da Família Souza"
+        },
+        {
+            "id": "grupo_hunters",
+            "name": "Hunters FiveZ",
+            "roleId": "1515125826780135485",
+            "emoji": "🎯",
+            "tag": "|Recruta|",
+            "description": "Caçadores de elite Hunters FiveZ (Recruta)"
+        },
+        {
+            "id": "grupo_comprador",
+            "name": "Comprador FiveZ",
+            "roleId": "1517662363266842725",
+            "emoji": "🛒",
+            "tag": "|CPD| FiveZ",
+            "description": "Compradores oficiais FiveZ"
+        },
+        {
+            "id": "grupo_amigos",
+            "name": "Amigos",
+            "roleId": "1515125842328424640",
+            "emoji": "🤝",
+            "tag": "|AMG|",
+            "description": "Cargo inicial de entrada, Amigos e Visitantes"
+        }
+    ]
 };
 
 // ===============================
@@ -115,7 +118,7 @@ const CONFIG = {
 const app = express();
 
 app.get('/', (req, res) => {
-    res.send('🟢 Bot do Discord Keep-Alive está Rodando 24/7!');
+    res.send('🟢 Bot Família Hunters Discord Keep-Alive está Rodando 24/7!');
 });
 
 app.get('/health', (req, res) => {
@@ -179,8 +182,7 @@ function formatarApelidoSeguro(tag, nome, id) {
 }
 
 /**
- * Verifica todos os membros do servidor.
- * Se alguém tiver a tag da facção no apelido mas NÃO tiver o cargo no Discord, a tag é removida!
+ * Verifica todos os membros do servidor e remove tags indevidas
  */
 async function verificarELimparTags(guild) {
     let totalAnalisados = 0;
@@ -201,7 +203,6 @@ async function verificarELimparTags(guild) {
                 const temTag = nickname.includes(grupo.tag);
                 const temCargo = member.roles.cache.has(grupo.roleId);
 
-                // SE TEM A TAG NO NOME, MAS NÃO TEM O CARGO NO DISCORD -> REMOVE A TAG
                 if (temTag && !temCargo) {
                     let novoNick = nickname.replace(grupo.tag, '').trim();
                     novoNick = novoNick.replace(/^[\s|\-]+|[\s|\-]+$/g, '').trim();
@@ -239,6 +240,8 @@ client.once(Events.ClientReady, (c) => {
     console.log(`🤖 BOT CONECTADO COMO: ${c.user.tag}`);
     console.log(`📍 Canal de Registro: ${CONFIG.CANAL_REGISTRO_ID}`);
     console.log(`⏳ Canal de Aprovação: ${CONFIG.CANAL_APROVACAO_ID}`);
+    console.log(`📋 Canal Painel Ausência: ${CONFIG.CANAL_PAINEL_AUSENCIA_ID}`);
+    console.log(`📜 Canal Logs Ausência: ${CONFIG.CANAL_AUSENCIA_LOGS_ID}`);
 });
 
 // Evento: Entrou novo membro
@@ -271,18 +274,18 @@ client.on(Events.GuildMemberAdd, async (member) => {
     }
 });
 
-// Comandos de Texto (!painel, !verificartags, !ping)
+// Comandos de Texto (!painel, !painelausencia, !verificartags, !ping)
 client.on(Events.MessageCreate, async (message) => {
     if (message.author.bot || !message.guild) return;
 
     const command = message.content.toLowerCase().trim();
 
-    // Comando !ping
+    // Comando !ping / !status
     if (command === '!ping' || command === '!status') {
         return message.reply(`🏓 **Pong!** Latência da API: \`${Math.round(client.ws.ping)}ms\`!`);
     }
 
-    // Comando !painel
+    // Comando !painel (Painel de Registro)
     if (command === '!painel' || command === '!postarpainel') {
         if (!message.member.permissions.has(PermissionsBitField.Flags.Administrator)) {
             return message.reply('❌ Apenas administradores podem postar o painel de registro.');
@@ -326,7 +329,64 @@ Para desbloquear todos os canais do servidor e registrar sua cidadania, selecion
         return message.reply('✅ Painel de registro publicado com sucesso!');
     }
 
-    // Comando !verificartags (Limpeza de membros sem cargo)
+    // ==========================================
+    // NOVO COMANDO: !painelausencia (PAINEL DE AUSÊNCIA)
+    // ==========================================
+    if (command === '!painelausencia' || command === '!postarpainelausencia' || command === '!ausencia') {
+        if (!message.member.permissions.has(PermissionsBitField.Flags.Administrator)) {
+            return message.reply('❌ Apenas administradores podem publicar o painel de ausência.');
+        }
+
+        const guildIcon = message.guild.iconURL({ dynamic: true }) || 'https://i.imgur.com/8Q8S4Zb.png';
+
+        const embedAusencia = new EmbedBuilder()
+            .setColor(CONFIG.EMBED_COLOR_AUSENCIA)
+            .setAuthor({ name: '🛡️ FAMÍLIA HUNTERS • SISTEMA DE AUSÊNCIA 🛡️', iconURL: guildIcon })
+            .setTitle('📋 PAINEL DE REGISTRO DE AUSÊNCIA')
+            .setThumbnail(guildIcon)
+            .setDescription(`
+# **MODELO DE AUSÊNCIA • FAMÍLIA HUNTERS**
+
+Caso você vá ficar ausente por **mais de 2 dias**, é obrigatório preencher o formulário para evitar advertências ou problemas com sua permanência no clã.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⚠️ **REGRAS IMPORTANTES:**
+
+• 📢 A ausência deve ser informada **antes** de ficar inativo, sempre que possível.
+• 📊 O período informado será analisado pela liderança.
+• ⏰ Caso o retorno atrase, comunique a liderança novamente.
+• 🚫 Ausências sem aviso prévio poderão resultar em **advertência** ou **remoção do clã**, conforme as regras da Família Hunters.
+
+🛡️ **Família Hunters** – *Organização, compromisso e respeito acima de tudo.*
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+👇 *Clique no botão abaixo para abrir o formulário de ausência:*
+`)
+            .setFooter({ text: CONFIG.FOOTER })
+            .setTimestamp();
+
+        const rowAusencia = new ActionRowBuilder().addComponents(
+            new ButtonBuilder()
+                .setCustomId('btn_iniciar_ausencia')
+                .setLabel('Registrar Ausência')
+                .setStyle(ButtonStyle.Primary)
+                .setEmoji('📝')
+        );
+
+        // Se houver canal específico configurado, envia nele, senão envia no canal atual
+        const targetChannel = message.guild.channels.cache.get(CONFIG.CANAL_PAINEL_AUSENCIA_ID) || message.channel;
+        await targetChannel.send({ embeds: [embedAusencia], components: [rowAusencia] });
+
+        if (targetChannel.id !== message.channel.id) {
+            return message.reply(`✅ Painel de Ausência publicado com sucesso no canal <#${CONFIG.CANAL_PAINEL_AUSENCIA_ID}>!`);
+        } else {
+            return message.reply('✅ Painel de Ausência publicado com sucesso neste canal!');
+        }
+    }
+
+    // Comando !verificartags
     if (command === '!verificartags' || command === '!limpartags' || command === '!checartags') {
         if (!message.member.permissions.has(PermissionsBitField.Flags.Administrator)) {
             return message.reply('❌ Apenas administradores podem executar a verificação de tags.');
@@ -354,10 +414,15 @@ Para desbloquear todos os canais do servidor e registrar sua cidadania, selecion
     }
 });
 
-// Interações (Botões, Seleção de Grupo, Formulário e Aprovação)
+// ===============================
+// INTERAÇÕES (BOTÕES, DROPDOWNS E MODAIS)
+// ===============================
 client.on(Events.InteractionCreate, async (interaction) => {
     try {
         if (interaction.isButton()) {
+            // ------------------------------------------
+            // REGISTRO DE CIDADANIA - INÍCIO
+            // ------------------------------------------
             if (interaction.customId === 'btn_iniciar_registro') {
                 const selectMenu = new StringSelectMenuBuilder()
                     .setCustomId('select_grupo_registro')
@@ -380,6 +445,143 @@ client.on(Events.InteractionCreate, async (interaction) => {
                 });
             }
 
+            // ------------------------------------------
+            // REGISTRO DE AUSÊNCIA - INÍCIO (ABRE MODAL)
+            // ------------------------------------------
+            if (interaction.customId === 'btn_iniciar_ausencia') {
+                const modal = new ModalBuilder()
+                    .setCustomId('modal_ausencia')
+                    .setTitle('Formulário de Ausência • Hunters');
+
+                const inputNomeId = new TextInputBuilder()
+                    .setCustomId('input_ausencia_nome_id')
+                    .setLabel('Nome e ID no Jogo')
+                    .setPlaceholder('Ex: Bruno Souza | ID: 1234')
+                    .setStyle(TextInputStyle.Short)
+                    .setMaxLength(40)
+                    .setRequired(true);
+
+                const inputCargo = new TextInputBuilder()
+                    .setCustomId('input_ausencia_cargo')
+                    .setLabel('Seu Cargo no Clã / Família')
+                    .setPlaceholder('Ex: Recruta / Membro / Liderança')
+                    .setStyle(TextInputStyle.Short)
+                    .setMaxLength(30)
+                    .setRequired(true);
+
+                const inputDatas = new TextInputBuilder()
+                    .setCustomId('input_ausencia_datas')
+                    .setLabel('Período (Data de Início e Retorno)')
+                    .setPlaceholder('Ex: Início 28/07/2026 - Retorno 05/08/2026')
+                    .setStyle(TextInputStyle.Short)
+                    .setMaxLength(50)
+                    .setRequired(true);
+
+                const inputMotivo = new TextInputBuilder()
+                    .setCustomId('input_ausencia_motivo')
+                    .setLabel('Motivo da Ausência')
+                    .setPlaceholder('Descreva resumidamente o motivo da sua ausência...')
+                    .setStyle(TextInputStyle.Paragraph)
+                    .setMaxLength(300)
+                    .setRequired(true);
+
+                const inputObs = new TextInputBuilder()
+                    .setCustomId('input_ausencia_obs')
+                    .setLabel('Observações (Opcional)')
+                    .setPlaceholder('Algum detalhe adicional para a liderança?')
+                    .setStyle(TextInputStyle.Paragraph)
+                    .setMaxLength(200)
+                    .setRequired(false);
+
+                modal.addComponents(
+                    new ActionRowBuilder().addComponents(inputNomeId),
+                    new ActionRowBuilder().addComponents(inputCargo),
+                    new ActionRowBuilder().addComponents(inputDatas),
+                    new ActionRowBuilder().addComponents(inputMotivo),
+                    new ActionRowBuilder().addComponents(inputObs)
+                );
+
+                return interaction.showModal(modal);
+            }
+
+            // ------------------------------------------
+            // BOTÕES DA LIDERANÇA NO LOG DE AUSÊNCIA
+            // ------------------------------------------
+            if (interaction.customId.startsWith('btn_ausencia_ciente_') || interaction.customId.startsWith('btn_ausencia_finalizar_')) {
+                const isCiente = interaction.customId.startsWith('btn_ausencia_ciente_');
+                const targetUserId = interaction.customId.replace('btn_ausencia_ciente_', '').replace('btn_ausencia_finalizar_', '');
+
+                const hasAdminRole = CONFIG.CARGOS_ADMINS_APROVADORES.some(roleId => interaction.member.roles.cache.has(roleId)) ||
+                                     interaction.member.permissions.has(PermissionsBitField.Flags.Administrator);
+
+                if (!hasAdminRole) {
+                    return interaction.reply({ content: '❌ Apenas administradores e liderança podem gerenciar avisos de ausência.', ephemeral: true });
+                }
+
+                const originalEmbed = interaction.message.embeds[0];
+                if (!originalEmbed) return interaction.reply({ content: '❌ Erro ao ler embed de ausência.', ephemeral: true });
+
+                const updatedEmbed = EmbedBuilder.from(originalEmbed);
+
+                if (isCiente) {
+                    updatedEmbed.setColor('#2ECC71');
+                    updatedEmbed.setTitle('✅ AUSÊNCIA RECONHECIDA E APROVADA');
+                    
+                    // Atualiza ou adiciona campo de avaliação da liderança
+                    const fields = updatedEmbed.data.fields || [];
+                    const statusIndex = fields.findIndex(f => f.name.includes('Status'));
+                    if (statusIndex !== -1) {
+                        fields[statusIndex] = { name: '📌 Status', value: `🟢 **Aprovada / Liderança Ciente** por <@${interaction.user.id}>`, inline: false };
+                    } else {
+                        fields.push({ name: '📌 Status', value: `🟢 **Aprovada / Liderança Ciente** por <@${interaction.user.id}>`, inline: false });
+                    }
+                    updatedEmbed.setFields(fields);
+
+                    const disabledRow = new ActionRowBuilder().addComponents(
+                        new ButtonBuilder()
+                            .setCustomId('btn_disabled_ciente')
+                            .setLabel('Liderança Ciente')
+                            .setStyle(ButtonStyle.Success)
+                            .setDisabled(true)
+                            .setEmoji('✅'),
+                        new ButtonBuilder()
+                            .setCustomId(`btn_ausencia_finalizar_${targetUserId}`)
+                            .setLabel('Finalizar Ausência (Retornou)')
+                            .setStyle(ButtonStyle.Secondary)
+                            .setEmoji('🏁')
+                    );
+
+                    await interaction.message.edit({ embeds: [updatedEmbed], components: [disabledRow] });
+
+                    // Notifica o membro no privado (DM)
+                    const memberObj = await interaction.guild.members.fetch(targetUserId).catch(() => null);
+                    if (memberObj) {
+                        await memberObj.send(`✅ Sua solicitação de **ausência** foi analisada e marcada como **Aprovada / Ciente** pela liderança (<@${interaction.user.id}>) no servidor **${interaction.guild.name}**.`).catch(() => {});
+                    }
+
+                    return interaction.reply({ content: '✅ Registro de ausência marcado como ciente!', ephemeral: true });
+                } else {
+                    updatedEmbed.setColor('#95A5A6');
+                    updatedEmbed.setTitle('🏁 AUSÊNCIA FINALIZADA (MEMBRO RETORNOU)');
+                    
+                    const fields = updatedEmbed.data.fields || [];
+                    const statusIndex = fields.findIndex(f => f.name.includes('Status'));
+                    if (statusIndex !== -1) {
+                        fields[statusIndex] = { name: '📌 Status', value: `🏁 **Ausência Concluída** (Finalizada por <@${interaction.user.id}>)`, inline: false };
+                    } else {
+                        fields.push({ name: '📌 Status', value: `🏁 **Ausência Concluída** (Finalizada por <@${interaction.user.id}>)`, inline: false });
+                    }
+                    updatedEmbed.setFields(fields);
+
+                    await interaction.message.edit({ embeds: [updatedEmbed], components: [] });
+
+                    return interaction.reply({ content: '🏁 Ausência marcada como finalizada com sucesso.', ephemeral: true });
+                }
+            }
+
+            // ------------------------------------------
+            // APROVAÇÃO / RECUSA DE REGISTRO DE CIDADANIA
+            // ------------------------------------------
             if (interaction.customId.startsWith('btn_aprovar_') || interaction.customId.startsWith('btn_recusar_')) {
                 const isApprove = interaction.customId.startsWith('btn_aprovar_');
                 
@@ -465,6 +667,9 @@ client.on(Events.InteractionCreate, async (interaction) => {
             }
         }
 
+        // ------------------------------------------
+        // SELEÇÃO DE GRUPO NO REGISTRO
+        // ------------------------------------------
         if (interaction.isStringSelectMenu() && interaction.customId === 'select_grupo_registro') {
             const roleId = interaction.values[0];
             const grupoObj = CONFIG.GRUPOS.find(g => g.roleId === roleId) || CONFIG.GRUPOS[0];
@@ -506,6 +711,9 @@ client.on(Events.InteractionCreate, async (interaction) => {
             await interaction.showModal(modal);
         }
 
+        // ------------------------------------------
+        // SUBMIT DO MODAL DE REGISTRO
+        // ------------------------------------------
         if (interaction.isModalSubmit() && interaction.customId.startsWith('modal_registro_')) {
             const roleId = interaction.customId.replace('modal_registro_', '');
             const grupoObj = CONFIG.GRUPOS.find(g => g.roleId === roleId) || CONFIG.GRUPOS[0];
@@ -555,6 +763,61 @@ client.on(Events.InteractionCreate, async (interaction) => {
                 ephemeral: true
             });
         }
+
+        // ------------------------------------------
+        // SUBMIT DO MODAL DE AUSÊNCIA
+        // ------------------------------------------
+        if (interaction.isModalSubmit() && interaction.customId === 'modal_ausencia') {
+            const nomeId = interaction.fields.getTextInputValue('input_ausencia_nome_id').trim();
+            const cargo = interaction.fields.getTextInputValue('input_ausencia_cargo').trim();
+            const datas = interaction.fields.getTextInputValue('input_ausencia_datas').trim();
+            const motivo = interaction.fields.getTextInputValue('input_ausencia_motivo').trim();
+            const obs = interaction.fields.getTextInputValue('input_ausencia_obs')?.trim() || 'Nenhuma observação informada.';
+
+            const embedLogAusencia = new EmbedBuilder()
+                .setColor('#E67E22')
+                .setTitle('🛡️ NOVA NOTIFICAÇÃO DE AUSÊNCIA • HUNTERS')
+                .addFields(
+                    { name: '👤 Membro Discord', value: `<@${interaction.user.id}> (${interaction.user.tag})`, inline: true },
+                    { name: '🆔 Nome & ID no Jogo', value: `**${nomeId}**`, inline: true },
+                    { name: '🎮 Cargo no Clã', value: `**${cargo}**`, inline: true },
+                    { name: '📅 Período de Ausência', value: `**${datas}**`, inline: false },
+                    { name: '📝 Motivo da Ausência', value: `${motivo}`, inline: false },
+                    { name: '📌 Observações', value: `${obs}`, inline: false },
+                    { name: '📌 Status', value: '⏳ **Aguardando Análise da Liderança**', inline: false }
+                )
+                .setFooter({ text: CONFIG.FOOTER })
+                .setTimestamp();
+
+            const rowLideranca = new ActionRowBuilder().addComponents(
+                new ButtonBuilder()
+                    .setCustomId(`btn_ausencia_ciente_${interaction.user.id}`)
+                    .setLabel('Ciente / Aprovar Ausência')
+                    .setStyle(ButtonStyle.Success)
+                    .setEmoji('✅'),
+                new ButtonBuilder()
+                    .setCustomId(`btn_ausencia_finalizar_${interaction.user.id}`)
+                    .setLabel('Finalizar Ausência')
+                    .setStyle(ButtonStyle.Secondary)
+                    .setEmoji('🏁')
+            );
+
+            // Envia no canal exclusivo de logs de ausência
+            const canalAusenciaLog = interaction.guild.channels.cache.get(CONFIG.CANAL_AUSENCIA_LOGS_ID) ||
+                                     await interaction.guild.channels.fetch(CONFIG.CANAL_AUSENCIA_LOGS_ID).catch(() => null);
+
+            if (canalAusenciaLog) {
+                await canalAusenciaLog.send({ embeds: [embedLogAusencia], components: [rowLideranca] });
+            } else {
+                console.error(`❌ Canal de Logs de Ausência (${CONFIG.CANAL_AUSENCIA_LOGS_ID}) não foi encontrado.`);
+            }
+
+            await interaction.reply({
+                content: `✅ **Sua ausência foi registrada com sucesso!**\nAs informações foram enviadas para a Liderança da Família Hunters no canal <#${CONFIG.CANAL_AUSENCIA_LOGS_ID}>. Tenha um bom descanso!`,
+                ephemeral: true
+            });
+        }
+
     } catch (err) {
         console.error('Erro ao processar interação:', err);
     }
