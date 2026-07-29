@@ -1,22 +1,12 @@
 /**
  * ============================================================================
- * BOT AUTOMÁTICO DE REGISTRO, CIDADANIA, AUSÊNCIA, LEITOR DE LOGS E FIXER DE NICKNAMES
+ * BOT AUTOMÁTICO DE REGISTRO, CIDADANIA, AUSÊNCIA & LIMPEZA DE TAGS DISCORD
  * CLÃ HUNTERS & FAMÍLIA SOUZA (FIVEZ & LUMENFALL)
  * ============================================================================
  * 
- * NOVOS COMANDOS INCLUÍDOS:
- * - !arrumarnomes ou !sincronizarnomes: Puxa o histórico de mensagens do canal de logs/aprovação,
- *   identifica quem fez o registro, extrai o Nome no Jogo, ID e Tag da Facção, e corrige
- *   o apelido do membro no servidor para o formato oficial: {TAG} {NOME} | {ID}.
- * - !arrumarnome @membro: Busca a ficha do membro nas logs e arruma o apelido individualmente.
- * - !verificartags: Varre o servidor e remove as tags de quem perdeu o cargo.
- * - !painel: Posta o painel interativo de Registro de Cidadania.
- * - !painelausencia: Posta o painel de aviso de ausência da liderança.
- * 
  * Como Rodar:
- * 1. Instale as dependências: npm install discord.js express dotenv
- * 2. Configure seu TOKEN na variável de ambiente DISCORD_TOKEN ou no arquivo .env
- * 3. Execute: node bot.js
+ * 1. Configure seu Token do Discord na variável DISCORD_TOKEN ou na linha BOT_TOKEN.
+ * 2. Execute: node bot.js
  */
 
 import dotenv from 'dotenv';
@@ -42,12 +32,14 @@ import {
 // ===============================
 // CONFIGURAÇÃO DE AMBIENTE & TOKEN
 // ===============================
-const BOT_TOKEN = process.env.DISCORD_TOKEN || process.env.TOKEN || process.env.DISCORD_BOT_TOKEN || process.env.BOT_TOKEN || "SEU_TOKEN_AQUI";
+const BOT_TOKEN = "SEU_TOKEN_AQUI";
+
+const TOKEN = process.env.DISCORD_TOKEN || process.env.TOKEN || process.env.DISCORD_BOT_TOKEN || process.env.BOT_TOKEN || BOT_TOKEN;
 const PORT = process.env.PORT || 3000;
 
-if (!BOT_TOKEN || BOT_TOKEN.trim() === "" || BOT_TOKEN.includes("COLE_SEU_TOKEN") || BOT_TOKEN.includes("SEU_TOKEN_AQUI")) {
+if (!TOKEN || TOKEN.trim() === "" || TOKEN.includes("COLE_SEU_TOKEN") || TOKEN.includes("SEU_TOKEN_AQUI")) {
     console.error("\n❌ ERRO CRÍTICO: TOKEN DO DISCORD NÃO ENCONTRADO!");
-    console.error("👉 Defina a variável 'DISCORD_TOKEN' no seu painel de hospedagem ou no arquivo .env.\n");
+    console.error("👉 Defina a variável 'DISCORD_TOKEN' no seu painel de hospedagem ou no código.\n");
     process.exit(1);
 }
 
@@ -72,24 +64,25 @@ const CONFIG = {
     CARGO_AMIGOS_ID: process.env.CARGO_AMIGOS_ID || "1515125842328424640",
     CARGO_HUNTERS_RECRUTA_ID: process.env.CARGO_HUNTERS_RECRUTA_ID || "1515125826780135485",
 
-    // Cargos Administradores Autorizados a Aprovar e Gerenciar
+    // Cargos Administradores Autorizados a Aprovar / Recusar
     CARGOS_ADMINS_APROVADORES: [
-        "1515125820836941985",
-        "1515125822795546715"
-    ],
+    "1515125820836941985",
+    "1515125822795546715"
+],
 
-    // Cargos Notificados ao Postar o Painel de Ausência
+    // Cargos Notificados ao Postar o Painel de Ausência (Líder, Gerente, Membro, Recruta)
     CARGOS_NOTIFICACAO_AUSENCIA: [
-        "1527848364496912404",
-        "1523277774436171796",
-        "1528075981078663259",
-        "1515125826780135485"
-    ],
+    "1527848364496912404",
+    "1523277774436171796",
+    "1528075981078663259",
+    "1515125826780135485"
+],
 
     EMBED_COLOR: "#2ECC71",
     EMBED_COLOR_AUSENCIA: "#E67E22",
-    FORMATO_APELIDO: "{TAG} {NOME} | {ID}",
+    COLOR_HUNTERS: "#8E44AD",
     FOOTER: "FiveZ & Lumenfall • Família Hunters • Anti-Queda",
+    FORMATO_APELIDO: "{TAG} {NOME} | {ID}",
 
     GRUPOS: [
         {
@@ -128,7 +121,7 @@ const CONFIG = {
 };
 
 // ===============================
-// SERVIDOR EXPRESS KEEP-ALIVE (24/7)
+// SERVIDOR EXPRESS KEEP-ALIVE (RAILWAY / REPLIT / VPS)
 // ===============================
 const app = express();
 
@@ -167,174 +160,37 @@ const client = new Client({
     partials: [Partials.Channel, Partials.Message, Partials.GuildMember]
 });
 
-// Anti-Crash Global para evitar que o bot caia
-process.on('unhandledRejection', (reason) => {
+// ===============================
+// PROTEÇÃO ANTI-CRASH GLOBAL
+// ===============================
+process.on('unhandledRejection', (reason, promise) => {
     console.error('⚠️ [Anti-Crash] Rejeição não tratada capturada:', reason);
 });
 
-process.on('uncaughtException', (error) => {
+process.on('uncaughtException', (error, origin) => {
     console.error('⚠️ [Anti-Crash] Exceção não capturada:', error);
 });
 
 // ===============================
-// FUNÇÕES AUXILIARES DE APELIDOS E LOGS
+// FUNÇÕES AUXILIARES
 // ===============================
 
 /**
- * Formata o apelido respeitando o limite máximo do Discord (32 caracteres)
+ * Trunca o apelido para o limite máximo permitido pelo Discord (32 caracteres)
  */
-function formatarApelidoSeguro(pattern, tag, nome, id) {
-    const tagLimpa = (tag || '').trim();
-    const nomeLimpo = (nome || '').trim();
-    const idLimpo = (id || '').trim();
-
-    let nick = pattern
-        .replace('{TAG}', tagLimpa)
-        .replace('{NOME}', nomeLimpo)
-        .replace('{ID}', idLimpo)
-        .replace(/\s+/g, ' ')
-        .trim();
-
+function formatarApelidoSeguro(tag, nome, id) {
+    let nick = `${tag} ${nome} | ${id}`.trim();
     if (nick.length > 32) {
-        const tamanhoExtra = tagLimpa.length + idLimpo.length + 5;
-        const maxNome = Math.max(2, 32 - tamanhoExtra);
-        const nomeCortado = nomeLimpo.substring(0, maxNome);
-
-        nick = pattern
-            .replace('{TAG}', tagLimpa)
-            .replace('{NOME}', nomeCortado)
-            .replace('{ID}', idLimpo)
-            .replace(/\s+/g, ' ')
-            .trim();
+        const tamanhoExtra = tag.length + id.length + 4;
+        const maxNome = Math.max(1, 32 - tamanhoExtra);
+        const nomeCortado = nome.substring(0, maxNome);
+        nick = `${tag} ${nomeCortado} | ${id}`.trim();
     }
-
     return nick.substring(0, 32);
 }
 
 /**
- * Lê o histórico de mensagens do canal de aprovação/logs e recupera as fichas
- */
-async function extrairFichasDasLogs(guild) {
-    const canalId = CONFIG.CANAL_APROVACAO_ID || CONFIG.CANAL_LOGS_ID;
-    const canal = guild.channels.cache.get(canalId) || await guild.channels.fetch(canalId).catch(() => null);
-
-    if (!canal) {
-        throw new Error(`Canal de aprovação/logs (${canalId}) não foi encontrado.`);
-    }
-
-    let messages = await canal.messages.fetch({ limit: 100 }).catch(() => null);
-    if (!messages) return [];
-
-    const fichasEncontradas = new Map();
-
-    for (const msg of messages.values()) {
-        if (!msg.embeds || msg.embeds.length === 0) continue;
-
-        for (const embed of msg.embeds) {
-            const isAprovado = embed.title?.includes('Aprovad') || embed.description?.includes('APROVADO') || embed.title?.includes('Registro');
-            if (!isAprovado) continue;
-
-            let userId = null;
-            let nomeJogo = null;
-            let idJogo = null;
-            let grupoNome = null;
-            let tagGrupo = null;
-
-            for (const field of embed.fields || []) {
-                const name = field.name.toLowerCase();
-                const val = field.value;
-
-                if (name.includes('usuário discord') || name.includes('membro')) {
-                    const match = val.match(/<@!?(\d+)>/);
-                    if (match) userId = match[1];
-                }
-                if (name.includes('nome no jogo') || name.includes('nome')) {
-                    nomeJogo = val.replace(/\*\*/g, '').trim();
-                }
-                if (name.includes('id no jogo') || name.includes('id')) {
-                    idJogo = val.replace(/\*\*/g, '').trim();
-                }
-                if (name.includes('grupo') || name.includes('facção')) {
-                    grupoNome = val;
-                }
-            }
-
-            if (userId && nomeJogo && idJogo) {
-                let matchedGroup = CONFIG.GRUPOS[0];
-                for (const g of CONFIG.GRUPOS) {
-                    if (grupoNome && (grupoNome.includes(g.name) || grupoNome.includes(g.tag))) {
-                        matchedGroup = g;
-                        break;
-                    }
-                }
-
-                tagGrupo = matchedGroup.tag;
-                const apelidoIdeal = formatarApelidoSeguro(CONFIG.FORMATO_APELIDO, tagGrupo, nomeJogo, idJogo);
-
-                if (!fichasEncontradas.has(userId)) {
-                    fichasEncontradas.set(userId, {
-                        userId,
-                        nomeJogo,
-                        idJogo,
-                        grupoObj: matchedGroup,
-                        tagGrupo,
-                        apelidoIdeal,
-                        dataMsg: msg.createdAt
-                    });
-                }
-            }
-        }
-    }
-
-    return Array.from(fichasEncontradas.values());
-}
-
-/**
- * Função principal do comando !arrumarnomes: lê logs e corrige apelidos
- */
-async function sincronizarEArrumarApelidosDasLogs(guild) {
-    const fichas = await extrairFichasDasLogs(guild);
-    let alterados = 0;
-    let jaCorretos = 0;
-    let erros = 0;
-    const detalhes = [];
-
-    const members = await guild.members.fetch().catch(() => null);
-    if (!members) throw new Error('Não foi possível carregar a lista de membros do servidor.');
-
-    for (const ficha of fichas) {
-        const member = members.get(ficha.userId);
-        if (!member) continue;
-
-        const apelidoAtual = member.nickname || member.user.displayName || member.user.username;
-
-        if (apelidoAtual === ficha.apelidoIdeal) {
-            jaCorretos++;
-            continue;
-        }
-
-        try {
-            await member.setNickname(ficha.apelidoIdeal);
-            alterados++;
-            detalhes.push({
-                userTag: member.user.tag,
-                userId: member.id,
-                antigo: apelidoAtual,
-                novo: ficha.apelidoIdeal,
-                grupo: ficha.grupoObj.name
-            });
-            console.log(`🔧 Apelido corrigido para ${member.user.tag}: '${apelidoAtual}' ➔ '${ficha.apelidoIdeal}'`);
-        } catch (err) {
-            erros++;
-            console.error(`❌ Falha ao alterar apelido de ${member.user.tag}:`, err.message);
-        }
-    }
-
-    return { totalFichas: fichas.length, alterados, jaCorretos, erros, detalhes };
-}
-
-/**
- * Limpa tags de quem não possui mais o cargo no servidor
+ * Verifica todos os membros do servidor e remove tags indevidas
  */
 async function verificarELimparTags(guild) {
     let totalAnalisados = 0;
@@ -370,9 +226,9 @@ async function verificarELimparTags(guild) {
                             apelidoNovo: nickFinal || member.user.username,
                             grupoNome: grupo.name
                         });
-                        console.log(`🧹 Tag '${grupo.tag}' removida de ${member.user.tag}`);
+                        console.log(`🧹 Tag '${grupo.tag}' removida de ${member.user.tag} (Sem o cargo '${grupo.name}')`);
                     } catch (err) {
-                        console.error(`❌ Erro ao alterar apelido de ${member.user.tag}:`, err.message);
+                        console.error(`❌ Não foi possível alterar o apelido de ${member.user.tag}:`, err.message);
                     }
                 }
             }
@@ -385,20 +241,24 @@ async function verificarELimparTags(guild) {
 }
 
 // ===============================
-// EVENTOS DO BOT DISCORD
+// EVENTOS DO BOT
 // ===============================
 
 client.once(Events.ClientReady, (c) => {
     console.log(`🤖 BOT CONECTADO COMO: ${c.user.tag}`);
-    console.log(`📍 Canal Registro: ${CONFIG.CANAL_REGISTRO_ID}`);
-    console.log(`⏳ Canal Aprovação: ${CONFIG.CANAL_APROVACAO_ID}`);
+    console.log(`📍 Canal de Registro: ${CONFIG.CANAL_REGISTRO_ID}`);
+    console.log(`⏳ Canal de Aprovação: ${CONFIG.CANAL_APROVACAO_ID}`);
+    console.log(`📋 Canal Painel Ausência: ${CONFIG.CANAL_PAINEL_AUSENCIA_ID}`);
+    console.log(`📜 Canal Logs Ausência: ${CONFIG.CANAL_AUSENCIA_LOGS_ID}`);
 });
 
-// Novo membro entra no servidor
+// Evento: Entrou novo membro
 client.on(Events.GuildMemberAdd, async (member) => {
     try {
         if (CONFIG.CARGO_AMIGOS_ID) {
-            await member.roles.add(CONFIG.CARGO_AMIGOS_ID).catch(() => {});
+            await member.roles.add(CONFIG.CARGO_AMIGOS_ID).catch((err) => {
+                console.error(`⚠️ Erro ao adicionar cargo inicial ao membro ${member.user.tag}:`, err.message);
+            });
         }
 
         if (CONFIG.CANAL_ENTRADA_SAIDA_ID) {
@@ -409,7 +269,7 @@ client.on(Events.GuildMemberAdd, async (member) => {
                 const embed = new EmbedBuilder()
                     .setColor(CONFIG.EMBED_COLOR)
                     .setTitle('🚪 NOVO MORADOR CHEGOU NA CIDADE!')
-                    .setDescription(`Bem-vindo(a) <@${member.id}> ao servidor!\n\n> 📝 Dirija-se ao canal <#${CONFIG.CANAL_REGISTRO_ID}> para realizar seu **Registro de Cidadania** e escolher seu grupo.`)
+                    .setDescription(`Bem-vindo(a) <@${member.id}> ao servidor!\n\n> 📝 Por favor, dirija-se ao canal <#${CONFIG.CANAL_REGISTRO_ID}> para realizar seu **Registro de Cidadania** e escolher seu grupo.`)
                     .setThumbnail(member.user.displayAvatarURL({ dynamic: true }))
                     .setFooter({ text: CONFIG.FOOTER })
                     .setTimestamp();
@@ -418,112 +278,25 @@ client.on(Events.GuildMemberAdd, async (member) => {
             }
         }
     } catch (err) {
-        console.error('Erro no GuildMemberAdd:', err);
+        console.error('Erro no evento GuildMemberAdd:', err);
     }
 });
 
-// Comandos de Texto (!arrumarnomes, !arrumarnome, !verificartags, !painel, !painelausencia)
+// Comandos de Texto (!painel, !painelausencia, !verificartags, !ping)
 client.on(Events.MessageCreate, async (message) => {
     if (message.author.bot || !message.guild) return;
 
     const command = message.content.toLowerCase().trim();
 
-    // Comando !ping
+    // Comando !ping / !status
     if (command === '!ping' || command === '!status') {
         return message.reply(`🏓 **Pong!** Latência da API: \`${Math.round(client.ws.ping)}ms\`!`);
-    }
-
-    // ==========================================
-    // COMANDO: !arrumarnomes OU !sincronizarnomes
-    // (Lê as logs e corrige todos os apelidos)
-    // ==========================================
-    if (command === '!arrumarnomes' || command === '!sincronizarnomes' || command === '!fixnicks') {
-        if (!message.member.permissions.has(PermissionsBitField.Flags.Administrator)) {
-            return message.reply('❌ Apenas administradores podem executar a sincronização.');
-        }
-
-        const statusMsg = await message.reply('🔍 **Lendo fichas do canal de logs e arrumando apelidos...**');
-
-        try {
-            const result = await sincronizarEArrumarApelidosDasLogs(message.guild);
-
-            const embed = new EmbedBuilder()
-                .setColor(CONFIG.EMBED_COLOR)
-                .setTitle('🔧 Sincronização & Correção de Apelidos Concluída!')
-                .setDescription('O bot analisou as logs do canal de aprovação e atualizou os apelidos dos membros.')
-                .addFields(
-                    { name: '📋 Fichas Encontradas nas Logs', value: `**${result.totalFichas}**`, inline: true },
-                    { name: '✏️ Apelidos Arrumados', value: `**${result.alterados}**`, inline: true },
-                    { name: '✅ Já Estavam Corretos', value: `**${result.jaCorretos}**`, inline: true }
-                )
-                .setFooter({ text: CONFIG.FOOTER })
-                .setTimestamp();
-
-            if (result.detalhes.length > 0) {
-                const amostra = result.detalhes.slice(0, 5).map(m => `• <@${m.userId}>: \`${m.antigo}\` ➔ \`${m.novo}\``).join('\n');
-                embed.addFields({
-                    name: '📝 Membros Ajustados (Amostra)',
-                    value: amostra + (result.detalhes.length > 5 ? `\n*...e mais ${result.detalhes.length - 5} membros.*` : ''),
-                    inline: false
-                });
-            }
-
-            await statusMsg.edit({ content: '✅ **Processo finalizado com sucesso!**', embeds: [embed] });
-        } catch (err) {
-            console.error('Erro no !arrumarnomes:', err);
-            await statusMsg.edit(`❌ **Erro ao sincronizar:** ${err.message}`);
-        }
-    }
-
-    // ==========================================
-    // COMANDO: !arrumarnome @Membro
-    // (Arruma apelido individual pelas logs)
-    // ==========================================
-    if (command.startsWith('!arrumarnome ')) {
-        if (!message.member.permissions.has(PermissionsBitField.Flags.Administrator)) {
-            return message.reply('❌ Apenas administradores.');
-        }
-
-        const targetUser = message.mentions.members.first() || await message.guild.members.fetch(message.content.split(' ')[1]).catch(() => null);
-        if (!targetUser) {
-            return message.reply('❌ Mencione um membro válido. Exemplo: `!arrumarnome @Bruno`');
-        }
-
-        const statusMsg = await message.reply(`🔍 Buscando ficha de <@${targetUser.id}> nas logs...`);
-
-        try {
-            const fichas = await extrairFichasDasLogs(message.guild);
-            const ficha = fichas.find(f => f.userId === targetUser.id);
-
-            if (!ficha) {
-                return statusMsg.edit(`⚠️ Ficha de registro não localizada nas logs para <@${targetUser.id}>.`);
-            }
-
-            const antigo = targetUser.nickname || targetUser.displayName;
-            await targetUser.setNickname(ficha.apelidoIdeal);
-
-            const embed = new EmbedBuilder()
-                .setColor(CONFIG.EMBED_COLOR)
-                .setTitle('✨ Apelido Arrumado com Sucesso!')
-                .addFields(
-                    { name: '👤 Membro', value: `<@${targetUser.id}>`, inline: true },
-                    { name: '📝 Apelido Antigo', value: `\`${antigo}\``, inline: true },
-                    { name: '🏷️ Apelido Novo (Formatado)', value: `\`${ficha.apelidoIdeal}\``, inline: true },
-                    { name: '🎯 Grupo Encontrado', value: `**${ficha.grupoObj.name}**`, inline: false }
-                )
-                .setFooter({ text: CONFIG.FOOTER })
-                .setTimestamp();
-
-            await statusMsg.edit({ content: '✅ **Apelido corrigido!**', embeds: [embed] });
-        } catch (err) {
-            await statusMsg.edit(`❌ Erro ao arrumar apelido: ${err.message}`);
-        }
     }
 
     // Comando !painel (Painel de Registro)
     if (command === '!painel' || command === '!postarpainel') {
         if (!message.member.permissions.has(PermissionsBitField.Flags.Administrator)) {
-            return message.reply('❌ Apenas administradores.');
+            return message.reply('❌ Apenas administradores podem postar o painel de registro.');
         }
 
         const guildIcon = message.guild.iconURL({ dynamic: true }) || 'https://i.imgur.com/8Q8S4Zb.png';
@@ -537,15 +310,15 @@ client.on(Events.MessageCreate, async (message) => {
 # **Seja bem-vindo à nossa Comunidade!**
 
 📢 **AVISO IMPORTANTE PARA TODOS (@everyone):**
-> ⚠️ **PRAZO LIMITE DE REGISTRO:** Todo membro tem um prazo máximo de **3 dias** para realizar o registro de cidadania.
-> 🚫 Se você passar de **3 dias** sem registro, será **kickado automaticamente**!
+> ⚠️ **PRAZO LIMITE DE REGISTRO:** Todo membro que entrar no servidor tem um prazo máximo de **3 dias** para realizar o registro de cidadania.
+> 🚫 Se você passar de **3 dias** no servidor sem realizar o seu registro (ficando sem os cargos dos grupos), você será **kickado automaticamente** pelo sistema!
 
-Para desbloquear o servidor e registrar sua cidadania, selecione seu grupo abaixo.
+Para desbloquear todos os canais do servidor e registrar sua cidadania, selecione seu grupo abaixo.
 
-🎁 **Benefícios:**
+🎁 **Benefícios ao registrar:**
 > ✅ **Cargo do seu Grupo escolhido**
 > 🏷️ **Apelido Atualizado:** Com a tag da facção, seu Nome e ID
-> 🔓 **Liberação imediata** dos canais
+> 🔓 **Liberação imediata** dos canais e categorias do servidor
 
 👇 *Clique no botão abaixo, escolha seu grupo e preencha o formulário!*
 `)
@@ -564,10 +337,12 @@ Para desbloquear o servidor e registrar sua cidadania, selecione seu grupo abaix
         return message.reply('✅ Painel de registro publicado com sucesso!');
     }
 
-    // Comando !painelausencia
+    // ==========================================
+    // NOVO COMANDO: !painelausencia (PAINEL DE AUSÊNCIA)
+    // ==========================================
     if (command === '!painelausencia' || command === '!postarpainelausencia' || command === '!ausencia') {
         if (!message.member.permissions.has(PermissionsBitField.Flags.Administrator)) {
-            return message.reply('❌ Apenas administradores.');
+            return message.reply('❌ Apenas administradores podem publicar o painel de ausência.');
         }
 
         const guildIcon = message.guild.iconURL({ dynamic: true }) || 'https://i.imgur.com/8Q8S4Zb.png';
@@ -580,21 +355,22 @@ Para desbloquear o servidor e registrar sua cidadania, selecione seu grupo abaix
             .setDescription(`
 # **MODELO DE AUSÊNCIA • FAMÍLIA HUNTERS**
 
-Caso você vá ficar ausente por **mais de 2 dias**, é obrigatório preencher o formulário para evitar advertências.
+Caso você vá ficar ausente por **mais de 2 dias**, é obrigatório preencher o formulário para evitar advertências ou problemas com sua permanência no clã.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 ⚠️ **REGRAS IMPORTANTES:**
 
-• 📢 Informe a ausência **antes** de ficar inativo.
-• 📊 O período será analisado pela liderança.
-• ⏰ Caso o retorno atrase, comunique novamente.
+• 📢 A ausência deve ser informada **antes** de ficar inativo, sempre que possível.
+• 📊 O período informado será analisado pela liderança.
+• ⏰ Caso o retorno atrase, comunique a liderança novamente.
+• 🚫 Ausências sem aviso prévio poderão resultar em **advertência** ou **remoção do clã**, conforme as regras da Família Hunters.
 
-🛡️ **Família Hunters** – *Organização e respeito acima de tudo.*
+🛡️ **Família Hunters** – *Organização, compromisso e respeito acima de tudo.*
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👇 *Clique no botão abaixo para abrir o formulário:*
+👇 *Clique no botão abaixo para abrir o formulário de ausência:*
 `)
             .setFooter({ text: CONFIG.FOOTER })
             .setTimestamp();
@@ -607,17 +383,24 @@ Caso você vá ficar ausente por **mais de 2 dias**, é obrigatório preencher o
                 .setEmoji('📝')
         );
 
+        // Monta as menções de todos os cargos configurados (Líder, Gerente, Membros, Recruta)
         const mencoes = CONFIG.CARGOS_NOTIFICACAO_AUSENCIA.map(id => '<@&' + id + '>').join(' ');
+
+        // Se houver canal específico configurado, envia nele, senão envia no canal atual
         const targetChannel = message.guild.channels.cache.get(CONFIG.CANAL_PAINEL_AUSENCIA_ID) || message.channel;
         await targetChannel.send({ content: mencoes, embeds: [embedAusencia], components: [rowAusencia] });
 
-        return message.reply('✅ Painel de Ausência publicado com sucesso!');
+        if (targetChannel.id !== message.channel.id) {
+            return message.reply(`✅ Painel de Ausência publicado com sucesso no canal <#${CONFIG.CANAL_PAINEL_AUSENCIA_ID}>!`);
+        } else {
+            return message.reply('✅ Painel de Ausência publicado com sucesso neste canal!');
+        }
     }
 
     // Comando !verificartags
-    if (command === '!verificartags' || command === '!limpartags') {
+    if (command === '!verificartags' || command === '!limpartags' || command === '!checartags') {
         if (!message.member.permissions.has(PermissionsBitField.Flags.Administrator)) {
-            return message.reply('❌ Apenas administradores.');
+            return message.reply('❌ Apenas administradores podem executar a verificação de tags.');
         }
 
         const statusMsg = await message.reply('🔍 **Verificando membros e removendo tags de quem está sem cargo...**');
@@ -625,7 +408,7 @@ Caso você vá ficar ausente por **mais de 2 dias**, é obrigatório preencher o
 
         const embed = new EmbedBuilder()
             .setColor(CONFIG.EMBED_COLOR)
-            .setTitle('🧹 Limpeza de Tags Concluída')
+            .setTitle('🧹 Limpeza e Verificação de Tags Concluída')
             .addFields(
                 { name: '👥 Membros Analisados', value: `${res.totalAnalisados}`, inline: true },
                 { name: '🏷️ Tags Removidas', value: `${res.tagsRemovidas}`, inline: true }
@@ -633,14 +416,24 @@ Caso você vá ficar ausente por **mais de 2 dias**, é obrigatório preencher o
             .setFooter({ text: CONFIG.FOOTER })
             .setTimestamp();
 
+        if (res.modificados.length > 0) {
+            const amostra = res.modificados.slice(0, 5).map(m => `• <@${m.idUsuario}>: \`${m.apelidoAntigo}\` ➔ \`${m.apelidoNovo}\``).join('\n');
+            embed.addFields({ name: '📝 Membros Ajustados (Amostra)', value: amostra + (res.modificados.length > 5 ? `\n*...e mais ${res.modificados.length - 5} membros.*`: ''), inline: false });
+        }
+
         await statusMsg.edit({ content: '✅ **Varredura finalizada!**', embeds: [embed] });
     }
 });
 
-// Interações (Botões e Modais)
+// ===============================
+// INTERAÇÕES (BOTÕES, DROPDOWNS E MODAIS)
+// ===============================
 client.on(Events.InteractionCreate, async (interaction) => {
     try {
         if (interaction.isButton()) {
+            // ------------------------------------------
+            // REGISTRO DE CIDADANIA - INÍCIO
+            // ------------------------------------------
             if (interaction.customId === 'btn_iniciar_registro') {
                 const selectMenu = new StringSelectMenuBuilder()
                     .setCustomId('select_grupo_registro')
@@ -655,17 +448,61 @@ client.on(Events.InteractionCreate, async (interaction) => {
                     );
 
                 const row = new ActionRowBuilder().addComponents(selectMenu);
-                return interaction.reply({ content: '👇 **Selecione abaixo qual grupo você pertence:**', components: [row], ephemeral: true });
+
+                return interaction.reply({
+                    content: '👇 **Selecione abaixo qual grupo você pertence:**',
+                    components: [row],
+                    ephemeral: true
+                });
             }
 
+            // ------------------------------------------
+            // REGISTRO DE AUSÊNCIA - INÍCIO (ABRE MODAL)
+            // ------------------------------------------
             if (interaction.customId === 'btn_iniciar_ausencia') {
-                const modal = new ModalBuilder().setCustomId('modal_ausencia').setTitle('Formulário de Ausência • Hunters');
+                const modal = new ModalBuilder()
+                    .setCustomId('modal_ausencia')
+                    .setTitle('Formulário de Ausência • Hunters');
 
-                const inputNomeId = new TextInputBuilder().setCustomId('input_ausencia_nome_id').setLabel('Nome e ID no Jogo').setPlaceholder('Ex: Bruno Souza | ID: 1234').setStyle(TextInputStyle.Short).setMaxLength(40).setRequired(true);
-                const inputCargo = new TextInputBuilder().setCustomId('input_ausencia_cargo').setLabel('Seu Cargo no Clã').setPlaceholder('Ex: Recruta / Membro').setStyle(TextInputStyle.Short).setMaxLength(30).setRequired(true);
-                const inputDatas = new TextInputBuilder().setCustomId('input_ausencia_datas').setLabel('Período (Início e Retorno)').setPlaceholder('Ex: Início 28/07 - Retorno 05/08').setStyle(TextInputStyle.Short).setMaxLength(50).setRequired(true);
-                const inputMotivo = new TextInputBuilder().setCustomId('input_ausencia_motivo').setLabel('Motivo da Ausência').setStyle(TextInputStyle.Paragraph).setMaxLength(300).setRequired(true);
-                const inputObs = new TextInputBuilder().setCustomId('input_ausencia_obs').setLabel('Observações (Opcional)').setStyle(TextInputStyle.Paragraph).setMaxLength(200).setRequired(false);
+                const inputNomeId = new TextInputBuilder()
+                    .setCustomId('input_ausencia_nome_id')
+                    .setLabel('Nome e ID no Jogo')
+                    .setPlaceholder('Ex: Bruno Souza | ID: 1234')
+                    .setStyle(TextInputStyle.Short)
+                    .setMaxLength(40)
+                    .setRequired(true);
+
+                const inputCargo = new TextInputBuilder()
+                    .setCustomId('input_ausencia_cargo')
+                    .setLabel('Seu Cargo no Clã / Família')
+                    .setPlaceholder('Ex: Recruta / Membro / Liderança')
+                    .setStyle(TextInputStyle.Short)
+                    .setMaxLength(30)
+                    .setRequired(true);
+
+                const inputDatas = new TextInputBuilder()
+                    .setCustomId('input_ausencia_datas')
+                    .setLabel('Período (Data de Início e Retorno)')
+                    .setPlaceholder('Ex: Início 28/07/2026 - Retorno 05/08/2026')
+                    .setStyle(TextInputStyle.Short)
+                    .setMaxLength(50)
+                    .setRequired(true);
+
+                const inputMotivo = new TextInputBuilder()
+                    .setCustomId('input_ausencia_motivo')
+                    .setLabel('Motivo da Ausência')
+                    .setPlaceholder('Descreva resumidamente o motivo da sua ausência...')
+                    .setStyle(TextInputStyle.Paragraph)
+                    .setMaxLength(300)
+                    .setRequired(true);
+
+                const inputObs = new TextInputBuilder()
+                    .setCustomId('input_ausencia_obs')
+                    .setLabel('Observações (Opcional)')
+                    .setPlaceholder('Algum detalhe adicional para a liderança?')
+                    .setStyle(TextInputStyle.Paragraph)
+                    .setMaxLength(200)
+                    .setRequired(false);
 
                 modal.addComponents(
                     new ActionRowBuilder().addComponents(inputNomeId),
@@ -678,22 +515,114 @@ client.on(Events.InteractionCreate, async (interaction) => {
                 return interaction.showModal(modal);
             }
 
-            // Aprovação e Recusa
+            // ------------------------------------------
+            // BOTÕES DA LIDERANÇA NO LOG DE AUSÊNCIA
+            // ------------------------------------------
+            if (interaction.customId.startsWith('btn_ausencia_ciente_') || interaction.customId.startsWith('btn_ausencia_finalizar_')) {
+                const isCiente = interaction.customId.startsWith('btn_ausencia_ciente_');
+                const targetUserId = interaction.customId.replace('btn_ausencia_ciente_', '').replace('btn_ausencia_finalizar_', '');
+
+                const hasAdminRole = CONFIG.CARGOS_ADMINS_APROVADORES.some(roleId => interaction.member.roles.cache.has(roleId)) ||
+                                     interaction.member.permissions.has(PermissionsBitField.Flags.Administrator);
+
+                if (!hasAdminRole) {
+                    return interaction.reply({ content: '❌ Apenas administradores e liderança podem gerenciar avisos de ausência.', ephemeral: true });
+                }
+
+                const originalEmbed = interaction.message.embeds[0];
+                if (!originalEmbed) return interaction.reply({ content: '❌ Erro ao ler embed de ausência.', ephemeral: true });
+
+                const updatedEmbed = EmbedBuilder.from(originalEmbed);
+
+                if (isCiente) {
+                    updatedEmbed.setColor('#2ECC71');
+                    updatedEmbed.setTitle('✅ AUSÊNCIA RECONHECIDA E APROVADA');
+                    
+                    // Atualiza ou adiciona campo de avaliação da liderança
+                    const fields = updatedEmbed.data.fields || [];
+                    const statusIndex = fields.findIndex(f => f.name.includes('Status'));
+                    if (statusIndex !== -1) {
+                        fields[statusIndex] = { name: '📌 Status', value: `🟢 **Aprovada / Liderança Ciente** por <@${interaction.user.id}>`, inline: false };
+                    } else {
+                        fields.push({ name: '📌 Status', value: `🟢 **Aprovada / Liderança Ciente** por <@${interaction.user.id}>`, inline: false });
+                    }
+                    updatedEmbed.setFields(fields);
+
+                    const disabledRow = new ActionRowBuilder().addComponents(
+                        new ButtonBuilder()
+                            .setCustomId('btn_disabled_ciente')
+                            .setLabel('Liderança Ciente')
+                            .setStyle(ButtonStyle.Success)
+                            .setDisabled(true)
+                            .setEmoji('✅'),
+                        new ButtonBuilder()
+                            .setCustomId(`btn_ausencia_finalizar_${targetUserId}`)
+                            .setLabel('Finalizar Ausência (Retornou)')
+                            .setStyle(ButtonStyle.Secondary)
+                            .setEmoji('🏁')
+                    );
+
+                    await interaction.message.edit({ embeds: [updatedEmbed], components: [disabledRow] });
+
+                    // Notifica o membro no privado (DM)
+                    const memberObj = await interaction.guild.members.fetch(targetUserId).catch(() => null);
+                    if (memberObj) {
+                        await memberObj.send(`✅ Sua solicitação de **ausência** foi analisada e marcada como **Aprovada / Ciente** pela liderança (<@${interaction.user.id}>) no servidor **${interaction.guild.name}**.`).catch(() => {});
+                    }
+
+                    return interaction.reply({ content: '✅ Registro de ausência marcado como ciente!', ephemeral: true });
+                } else {
+                    updatedEmbed.setColor('#95A5A6');
+                    updatedEmbed.setTitle('🏁 AUSÊNCIA FINALIZADA (MEMBRO RETORNOU)');
+                    
+                    const fields = updatedEmbed.data.fields || [];
+                    const statusIndex = fields.findIndex(f => f.name.includes('Status'));
+                    if (statusIndex !== -1) {
+                        fields[statusIndex] = { name: '📌 Status', value: `🏁 **Ausência Concluída** (Finalizada por <@${interaction.user.id}>)`, inline: false };
+                    } else {
+                        fields.push({ name: '📌 Status', value: `🏁 **Ausência Concluída** (Finalizada por <@${interaction.user.id}>)`, inline: false });
+                    }
+                    updatedEmbed.setFields(fields);
+
+                    await interaction.message.edit({ embeds: [updatedEmbed], components: [] });
+
+                    return interaction.reply({ content: '🏁 Ausência marcada como finalizada com sucesso.', ephemeral: true });
+                }
+            }
+
+            // ------------------------------------------
+            // APROVAÇÃO / RECUSA DE REGISTRO DE CIDADANIA
+            // ------------------------------------------
             if (interaction.customId.startsWith('btn_aprovar_') || interaction.customId.startsWith('btn_recusar_')) {
                 const isApprove = interaction.customId.startsWith('btn_aprovar_');
+                
+                const hasAdminRole = CONFIG.CARGOS_ADMINS_APROVADORES.some(roleId => interaction.member.roles.cache.has(roleId)) ||
+                                     interaction.member.permissions.has(PermissionsBitField.Flags.Administrator);
+
+                if (!hasAdminRole) {
+                    return interaction.reply({ content: '❌ Você não tem permissão para aprovar ou recusar registros.', ephemeral: true });
+                }
+
                 const embed = interaction.message.embeds[0];
-                if (!embed) return interaction.reply({ content: '❌ Erro ao ler embed.', ephemeral: true });
+                if (!embed) return interaction.reply({ content: '❌ Erro ao ler embed de registro.', ephemeral: true });
 
                 let userId = null;
-                const userField = embed.fields?.find(f => f.name.includes('Usuário Discord'));
-                if (userField) {
-                    const m = userField.value.match(/<@!?(\d+)>/);
+                const userDiscordField = embed.fields?.find(f => f.name.includes('Usuário Discord'));
+                if (userDiscordField) {
+                    const m = userDiscordField.value.match(/<@!?(\d+)>/);
                     if (m) userId = m[1];
                 }
-                if (!userId) userId = interaction.customId.replace('btn_aprovar_', '').replace('btn_recusar_', '');
+
+                if (!userId) {
+                    userId = interaction.customId.replace('btn_aprovar_', '').replace('btn_recusar_', '');
+                }
+
+                if (!userId) return interaction.reply({ content: '❌ Usuário não localizado no formulário.', ephemeral: true });
 
                 const member = await interaction.guild.members.fetch(userId).catch(() => null);
-                if (!member) return interaction.reply({ content: '❌ Membro não encontrado.', ephemeral: true });
+                if (!member) {
+                    return interaction.reply({ content: '❌ Membro não encontrado no servidor (pode ter saído).', ephemeral: true });
+                }
 
                 const nomeField = embed.fields?.find(f => f.name.includes('Nome no Jogo'))?.value?.replace(/\*\*/g, '') || 'N/A';
                 const idField = embed.fields?.find(f => f.name.includes('ID no Jogo'))?.value?.replace(/\*\*/g, '') || 'N/A';
@@ -708,39 +637,81 @@ client.on(Events.InteractionCreate, async (interaction) => {
                 }
 
                 if (isApprove) {
-                    const finalNick = formatarApelidoSeguro(CONFIG.FORMATO_APELIDO, matchedGroup.tag, nomeField, idField);
-                    await member.setNickname(finalNick).catch(() => {});
-                    await member.roles.add(matchedGroup.roleId).catch(() => {});
+                    const finalNickname = formatarApelidoSeguro(matchedGroup.tag, nomeField, idField);
+
+                    try {
+                        await member.setNickname(finalNickname);
+                    } catch (e) {
+                        console.error(`⚠️ Erro ao alterar apelido de ${member.user.tag}:`, e.message);
+                    }
+
+                    try {
+                        await member.roles.add(matchedGroup.roleId);
+                    } catch (e) {
+                        console.error(`⚠️ Erro ao adicionar cargo ${matchedGroup.name} a ${member.user.tag}:`, e.message);
+                    }
 
                     const approvedEmbed = EmbedBuilder.from(embed)
                         .setColor('#2ECC71')
                         .setTitle('✅ Registro & Apelido Aprovados')
+                        .setDescription('O membro preencheu o formulário de cidadania e foi **APROVADO**.')
                         .addFields({ name: '👮 Avaliado por', value: `<@${interaction.user.id}>`, inline: false });
 
                     await interaction.message.edit({ embeds: [approvedEmbed], components: [] });
-                    await interaction.reply({ content: `✅ Registro de <@${userId}> aprovado! Apelido definido para \`${finalNick}\`.`, ephemeral: true });
+
+                    await member.send(`🎉 **Parabéns!** Seu registro no grupo **${matchedGroup.name}** foi aprovado no servidor **${interaction.guild.name}**! Seu apelido foi atualizado para \`${finalNickname}\`.`).catch(() => {});
+
+                    await interaction.reply({ content: `✅ Registro de <@${userId}> aprovado com sucesso!`, ephemeral: true });
                 } else {
                     const rejectedEmbed = EmbedBuilder.from(embed)
                         .setColor('#E74C3C')
                         .setTitle('❌ Registro Recusado')
+                        .setDescription('O membro preencheu o formulário de cidadania e foi **RECUSADO**.')
                         .addFields({ name: '👮 Avaliado por', value: `<@${interaction.user.id}>`, inline: false });
 
                     await interaction.message.edit({ embeds: [rejectedEmbed], components: [] });
+
+                    await member.send(`❌ Seu registro no servidor **${interaction.guild.name}** foi recusado pela administração.`).catch(() => {});
+
                     await interaction.reply({ content: `❌ Registro de <@${userId}> recusado.`, ephemeral: true });
                 }
             }
         }
 
-        // Submits
+        // ------------------------------------------
+        // SELEÇÃO DE GRUPO NO REGISTRO
+        // ------------------------------------------
         if (interaction.isStringSelectMenu() && interaction.customId === 'select_grupo_registro') {
             const roleId = interaction.values[0];
             const grupoObj = CONFIG.GRUPOS.find(g => g.roleId === roleId) || CONFIG.GRUPOS[0];
 
-            const modal = new ModalBuilder().setCustomId(`modal_registro_${grupoObj.roleId}`).setTitle(`Formulário — ${grupoObj.name.substring(0, 30)}`);
+            const modal = new ModalBuilder()
+                .setCustomId(`modal_registro_${grupoObj.roleId}`)
+                .setTitle(`Formulário — ${grupoObj.name.substring(0, 30)}`);
 
-            const inputNome = new TextInputBuilder().setCustomId('input_nome_jogo').setLabel('Seu Nome / Apelido no Jogo').setPlaceholder('Ex: Bruno Souza').setStyle(TextInputStyle.Short).setMaxLength(20).setRequired(true);
-            const inputId = new TextInputBuilder().setCustomId('input_id_jogo').setLabel('Seu ID numérico no Jogo').setPlaceholder('Ex: 1234').setStyle(TextInputStyle.Short).setMaxLength(8).setRequired(true);
-            const inputContratante = new TextInputBuilder().setCustomId('input_contratante').setLabel('Quem te contratou / convidou?').setPlaceholder('Ex: Liderança / Souza').setStyle(TextInputStyle.Short).setMaxLength(30).setRequired(true);
+            const inputNome = new TextInputBuilder()
+                .setCustomId('input_nome_jogo')
+                .setLabel('Seu Nome / Apelido no Jogo')
+                .setPlaceholder('Ex: Bruno Souza')
+                .setStyle(TextInputStyle.Short)
+                .setMaxLength(20)
+                .setRequired(true);
+
+            const inputId = new TextInputBuilder()
+                .setCustomId('input_id_jogo')
+                .setLabel('Seu ID numérico no Jogo')
+                .setPlaceholder('Ex: 1234')
+                .setStyle(TextInputStyle.Short)
+                .setMaxLength(8)
+                .setRequired(true);
+
+            const inputContratante = new TextInputBuilder()
+                .setCustomId('input_contratante')
+                .setLabel('Quem te contratou / convidou?')
+                .setPlaceholder('Ex: Liderança / Souza')
+                .setStyle(TextInputStyle.Short)
+                .setMaxLength(30)
+                .setRequired(true);
 
             modal.addComponents(
                 new ActionRowBuilder().addComponents(inputNome),
@@ -751,6 +722,9 @@ client.on(Events.InteractionCreate, async (interaction) => {
             await interaction.showModal(modal);
         }
 
+        // ------------------------------------------
+        // SUBMIT DO MODAL DE REGISTRO
+        // ------------------------------------------
         if (interaction.isModalSubmit() && interaction.customId.startsWith('modal_registro_')) {
             const roleId = interaction.customId.replace('modal_registro_', '');
             const grupoObj = CONFIG.GRUPOS.find(g => g.roleId === roleId) || CONFIG.GRUPOS[0];
@@ -759,7 +733,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
             const idJogo = interaction.fields.getTextInputValue('input_id_jogo').trim();
             const contratante = interaction.fields.getTextInputValue('input_contratante').trim();
 
-            const finalNick = formatarApelidoSeguro(CONFIG.FORMATO_APELIDO, grupoObj.tag, nomeJogo, idJogo);
+            const finalNickname = formatarApelidoSeguro(grupoObj.tag, nomeJogo, idJogo);
 
             const embedAprovacao = new EmbedBuilder()
                 .setColor('#F1C40F')
@@ -770,31 +744,97 @@ client.on(Events.InteractionCreate, async (interaction) => {
                     { name: '📝 Nome no Jogo', value: `**${nomeJogo}**`, inline: true },
                     { name: '🔢 ID no Jogo', value: `**${idJogo}**`, inline: true },
                     { name: '🤝 Quem te Contratou', value: `**${contratante}**`, inline: false },
-                    { name: '🏷️ Apelido a Aplicar', value: `\`${finalNick}\``, inline: false }
+                    { name: '🏷️ Apelido a Aplicar', value: `\`${finalNickname}\``, inline: false }
                 )
                 .setFooter({ text: CONFIG.FOOTER })
                 .setTimestamp();
 
-            const row = new ActionRowBuilder().addComponents(
-                new ButtonBuilder().setCustomId(`btn_aprovar_${interaction.user.id}`).setLabel('Aprovar Cidadania').setStyle(ButtonStyle.Success).setEmoji('✅'),
-                new ButtonBuilder().setCustomId(`btn_recusar_${interaction.user.id}`).setLabel('Recusar Cidadania').setStyle(ButtonStyle.Danger).setEmoji('❌')
+            const rowAprovacao = new ActionRowBuilder().addComponents(
+                new ButtonBuilder()
+                    .setCustomId(`btn_aprovar_${interaction.user.id}`)
+                    .setLabel('Aprovar Cidadania')
+                    .setStyle(ButtonStyle.Success)
+                    .setEmoji('✅'),
+                new ButtonBuilder()
+                    .setCustomId(`btn_recusar_${interaction.user.id}`)
+                    .setLabel('Recusar Cidadania')
+                    .setStyle(ButtonStyle.Danger)
+                    .setEmoji('❌')
             );
 
-            const channel = interaction.guild.channels.cache.get(CONFIG.CANAL_APROVACAO_ID) ||
-                            await interaction.guild.channels.fetch(CONFIG.CANAL_APROVACAO_ID).catch(() => null);
+            const aprovacaoChannel = interaction.guild.channels.cache.get(CONFIG.CANAL_APROVACAO_ID) ||
+                                     await interaction.guild.channels.fetch(CONFIG.CANAL_APROVACAO_ID).catch(() => null);
 
-            if (channel) {
-                await channel.send({ embeds: [embedAprovacao], components: [row] });
+            if (aprovacaoChannel) {
+                await aprovacaoChannel.send({ embeds: [embedAprovacao], components: [rowAprovacao] });
             }
 
             await interaction.reply({
-                content: `✅ **Formulário enviado com sucesso!**\nSua solicitação foi enviada para a Liderança.`,
+                content: `✅ **Formulário enviado com sucesso!**\nSua solicitação para o grupo **${grupoObj.name}** foi enviada para a Administração. Aguarde a liberação dos cargos!`,
                 ephemeral: true
             });
         }
+
+        // ------------------------------------------
+        // SUBMIT DO MODAL DE AUSÊNCIA
+        // ------------------------------------------
+        if (interaction.isModalSubmit() && interaction.customId === 'modal_ausencia') {
+            const nomeId = interaction.fields.getTextInputValue('input_ausencia_nome_id').trim();
+            const cargo = interaction.fields.getTextInputValue('input_ausencia_cargo').trim();
+            const datas = interaction.fields.getTextInputValue('input_ausencia_datas').trim();
+            const motivo = interaction.fields.getTextInputValue('input_ausencia_motivo').trim();
+            const obs = interaction.fields.getTextInputValue('input_ausencia_obs')?.trim() || 'Nenhuma observação informada.';
+
+            const embedLogAusencia = new EmbedBuilder()
+                .setColor('#E67E22')
+                .setTitle('🛡️ NOVA NOTIFICAÇÃO DE AUSÊNCIA • HUNTERS')
+                .addFields(
+                    { name: '👤 Membro Discord', value: `<@${interaction.user.id}> (${interaction.user.tag})`, inline: true },
+                    { name: '🆔 Nome & ID no Jogo', value: `**${nomeId}**`, inline: true },
+                    { name: '🎮 Cargo no Clã', value: `**${cargo}**`, inline: true },
+                    { name: '📅 Período de Ausência', value: `**${datas}**`, inline: false },
+                    { name: '📝 Motivo da Ausência', value: `${motivo}`, inline: false },
+                    { name: '📌 Observações', value: `${obs}`, inline: false },
+                    { name: '📌 Status', value: '⏳ **Aguardando Análise da Liderança**', inline: false }
+                )
+                .setFooter({ text: CONFIG.FOOTER })
+                .setTimestamp();
+
+            const rowLideranca = new ActionRowBuilder().addComponents(
+                new ButtonBuilder()
+                    .setCustomId(`btn_ausencia_ciente_${interaction.user.id}`)
+                    .setLabel('Ciente / Aprovar Ausência')
+                    .setStyle(ButtonStyle.Success)
+                    .setEmoji('✅'),
+                new ButtonBuilder()
+                    .setCustomId(`btn_ausencia_finalizar_${interaction.user.id}`)
+                    .setLabel('Finalizar Ausência')
+                    .setStyle(ButtonStyle.Secondary)
+                    .setEmoji('🏁')
+            );
+
+            // Envia no canal exclusivo de logs de ausência
+            const canalAusenciaLog = interaction.guild.channels.cache.get(CONFIG.CANAL_AUSENCIA_LOGS_ID) ||
+                                     await interaction.guild.channels.fetch(CONFIG.CANAL_AUSENCIA_LOGS_ID).catch(() => null);
+
+            if (canalAusenciaLog) {
+                await canalAusenciaLog.send({ embeds: [embedLogAusencia], components: [rowLideranca] });
+            } else {
+                console.error(`❌ Canal de Logs de Ausência (${CONFIG.CANAL_AUSENCIA_LOGS_ID}) não foi encontrado.`);
+            }
+
+            await interaction.reply({
+                content: `✅ **Sua ausência foi registrada com sucesso!**\nAs informações foram enviadas para a Liderança da Família Hunters no canal <#${CONFIG.CANAL_AUSENCIA_LOGS_ID}>. Tenha um bom descanso!`,
+                ephemeral: true
+            });
+        }
+
     } catch (err) {
         console.error('Erro ao processar interação:', err);
     }
 });
 
-client.login(BOT_TOKEN).catch(err => console.error("Erro no login:", err.message));
+// Login no Discord
+client.login(TOKEN).catch((err) => {
+    console.error("❌ ERRO AO FAZER LOGIN NO DISCORD:", err.message);
+});
