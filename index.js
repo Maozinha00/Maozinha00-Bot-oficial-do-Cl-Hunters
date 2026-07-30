@@ -1,12 +1,19 @@
 /**
  * ============================================================================
- * BOT AUTOMÁTICO DE REGISTRO, CIDADANIA, AUSÊNCIA & LIMPEZA DE TAGS DISCORD
+ * BOT AUTOMÁTICO DE REGISTRO (SET), AUSÊNCIA & LIMPEZA DE TAGS DISCORD
  * CLÃ HUNTERS & FAMÍLIA SOUZA (FIVEZ & LUMENFALL)
  * ============================================================================
  * 
- * Como Rodar:
- * 1. Configure seu Token do Discord na variável DISCORD_TOKEN ou na linha BOT_TOKEN.
- * 2. Execute: node bot.js
+ * CORREÇÕES APLICADAS:
+ * 1. Removida atribuição automática de cargo ao entrar (GuildMemberAdd).
+ * 2. O novo membro DEVE ir até o canal de registro e "pedir o set" (registro manual).
+ * 3. Corrigida a sintaxe quebrada e parênteses soltos do evento GuildMemberAdd.
+ * 4. Adicionado servidor HTTP Keep-Alive anti-queda na porta 3000.
+ * 
+ * Como rodar:
+ * 1. npm install discord.js dotenv express
+ * 2. Defina a variável DISCORD_TOKEN no arquivo .env
+ * 3. execute: node bot.js
  */
 
 import dotenv from 'dotenv';
@@ -32,15 +39,13 @@ import {
 // ===============================
 // CONFIGURAÇÃO DE AMBIENTE & TOKEN
 // ===============================
-const BOT_TOKEN = "SEU_TOKEN_AQUI";
+const BOT_TOKEN = "DISCORD_BOT_TOKEN_AQUI";
 
 const TOKEN = process.env.DISCORD_TOKEN || process.env.TOKEN || process.env.DISCORD_BOT_TOKEN || process.env.BOT_TOKEN || BOT_TOKEN;
 const PORT = process.env.PORT || 3000;
 
-if (!TOKEN || TOKEN.trim() === "" || TOKEN.includes("COLE_SEU_TOKEN") || TOKEN.includes("SEU_TOKEN_AQUI")) {
-    console.error("\n❌ ERRO CRÍTICO: TOKEN DO DISCORD NÃO ENCONTRADO!");
-    console.error("👉 Defina a variável 'DISCORD_TOKEN' no seu painel de hospedagem ou no código.\n");
-    process.exit(1);
+if (!TOKEN || TOKEN.trim() === "" || TOKEN.includes("COLE_SEU_TOKEN") || TOKEN.includes("SEU_TOKEN_AQUI") || TOKEN.includes("DISCORD_BOT_TOKEN_AQUI")) {
+    console.warn("⚠️ AVISO: Configure a variável 'DISCORD_TOKEN' no seu .env ou no painel de hospedagem!");
 }
 
 // ===============================
@@ -66,16 +71,16 @@ const CONFIG = {
 
     // Cargos Administradores Autorizados a Aprovar / Recusar
     CARGOS_ADMINS_APROVADORES: [
-    "1515125820836941985",
-    "1515125822795546715"
+        "1515125820836941985",
+        "1515125822795546715"
 ],
 
-    // Cargos Notificados ao Postar o Painel de Ausência (Líder, Gerente, Membro, Recruta)
+    // Cargos Notificados ao Postar o Painel de Ausência
     CARGOS_NOTIFICACAO_AUSENCIA: [
-    "1527848364496912404",
-    "1523277774436171796",
-    "1528075981078663259",
-    "1515125826780135485"
+        "1527848364496912404",
+        "1523277774436171796",
+        "1528075981078663259",
+        "1515125826780135485"
 ],
 
     EMBED_COLOR: "#2ECC71",
@@ -86,42 +91,42 @@ const CONFIG = {
 
     GRUPOS: [
         {
-            "id": "grupo_souza",
-            "name": "Família Souza",
-            "roleId": "1515125828185493675",
-            "emoji": "❤️",
-            "tag": "|Souza|",
-            "description": "Membros oficiais da Família Souza"
+                "id": "grupo_souza",
+                "name": "Família Souza",
+                "roleId": "1515125828185493675",
+                "emoji": "❤️",
+                "tag": "|Souza|",
+                "description": "Membros oficiais da Família Souza"
         },
         {
-            "id": "grupo_hunters",
-            "name": "Hunters FiveZ",
-            "roleId": "1515125826780135485",
-            "emoji": "🎯",
-            "tag": "|Recruta|",
-            "description": "Caçadores de elite Hunters FiveZ (Recruta)"
+                "id": "grupo_hunters",
+                "name": "Hunters FiveZ",
+                "roleId": "1515125826780135485",
+                "emoji": "🎯",
+                "tag": "|Recruta|",
+                "description": "Caçadores de elite Hunters FiveZ (Recruta)"
         },
         {
-            "id": "grupo_comprador",
-            "name": "Comprador FiveZ",
-            "roleId": "1517662363266842725",
-            "emoji": "🛒",
-            "tag": "|CPD| FiveZ",
-            "description": "Compradores oficiais FiveZ"
+                "id": "grupo_comprador",
+                "name": "Comprador FiveZ",
+                "roleId": "1517662363266842725",
+                "emoji": "🛒",
+                "tag": "|CPD| FiveZ",
+                "description": "Compradores oficiais FiveZ"
         },
         {
-            "id": "grupo_amigos",
-            "name": "Amigos",
-            "roleId": "1515125842328424640",
-            "emoji": "🤝",
-            "tag": "|AMG|",
-            "description": "Cargo inicial de entrada, Amigos e Visitantes"
+                "id": "grupo_amigos",
+                "name": "Amigos",
+                "roleId": "1515125842328424640",
+                "emoji": "🤝",
+                "tag": "|AMG|",
+                "description": "Cargo inicial de entrada, Amigos e Visitantes"
         }
-    ]
+]
 };
 
 // ===============================
-// SERVIDOR EXPRESS KEEP-ALIVE (RAILWAY / REPLIT / VPS)
+// SERVIDOR EXPRESS KEEP-ALIVE
 // ===============================
 const app = express();
 
@@ -132,7 +137,7 @@ app.get('/', (req, res) => {
 app.get('/health', (req, res) => {
     res.status(200).json({
         status: 'OK',
-        botConnected: client.user ? true : false,
+        botConnected: Boolean(client.user),
         botUser: client.user ? client.user.tag : null,
         uptime: Math.floor(process.uptime()),
         timestamp: new Date().toISOString()
@@ -252,11 +257,15 @@ client.once(Events.ClientReady, (c) => {
     console.log(`📜 Canal Logs Ausência: ${CONFIG.CANAL_AUSENCIA_LOGS_ID}`);
 });
 
-// Evento: Entrou novo membro
+/**
+ * Evento: Entrou novo membro no servidor
+ * CORREÇÃO SOLICITADA:
+ * - NENHUM cargo é concedido automaticamente.
+ * - O membro recebe apenas a instrução de ir até o canal de registro pedir o set.
+ */
 client.on(Events.GuildMemberAdd, async (member) => {
-    // Não adicionar cargo automaticamente
-});
-        }
+    try {
+        console.log(`👤 Novo membro entrou no servidor: ${member.user.tag} (${member.id}) - Nenhum cargo atribuído automaticamente.`);
 
         if (CONFIG.CANAL_ENTRADA_SAIDA_ID) {
             const channel = member.guild.channels.cache.get(CONFIG.CANAL_ENTRADA_SAIDA_ID) || 
@@ -266,7 +275,7 @@ client.on(Events.GuildMemberAdd, async (member) => {
                 const embed = new EmbedBuilder()
                     .setColor(CONFIG.EMBED_COLOR)
                     .setTitle('🚪 NOVO MORADOR CHEGOU NA CIDADE!')
-                    .setDescription(`Bem-vindo(a) <@${member.id}> ao servidor!\n\n> 📝 Por favor, dirija-se ao canal <#${CONFIG.CANAL_REGISTRO_ID}> para realizar seu **Registro de Cidadania** e escolher seu grupo.`)
+                    .setDescription(`Bem-vindo(a) <@${member.id}> ao servidor!\n\n> 📝 Por favor, dirija-se ao canal <#${CONFIG.CANAL_REGISTRO_ID}> para pedir o seu **Set / Registro de Cidadania** e escolher seu grupo.`)
                     .setThumbnail(member.user.displayAvatarURL({ dynamic: true }))
                     .setFooter({ text: CONFIG.FOOTER })
                     .setTimestamp();
@@ -334,9 +343,7 @@ Para desbloquear todos os canais do servidor e registrar sua cidadania, selecion
         return message.reply('✅ Painel de registro publicado com sucesso!');
     }
 
-    // ==========================================
-    // NOVO COMANDO: !painelausencia (PAINEL DE AUSÊNCIA)
-    // ==========================================
+    // Comando !painelausencia (Painel de Ausência)
     if (command === '!painelausencia' || command === '!postarpainelausencia' || command === '!ausencia') {
         if (!message.member.permissions.has(PermissionsBitField.Flags.Administrator)) {
             return message.reply('❌ Apenas administradores podem publicar o painel de ausência.');
@@ -380,10 +387,8 @@ Caso você vá ficar ausente por **mais de 2 dias**, é obrigatório preencher o
                 .setEmoji('📝')
         );
 
-        // Monta as menções de todos os cargos configurados (Líder, Gerente, Membros, Recruta)
         const mencoes = CONFIG.CARGOS_NOTIFICACAO_AUSENCIA.map(id => '<@&' + id + '>').join(' ');
 
-        // Se houver canal específico configurado, envia nele, senão envia no canal atual
         const targetChannel = message.guild.channels.cache.get(CONFIG.CANAL_PAINEL_AUSENCIA_ID) || message.channel;
         await targetChannel.send({ content: mencoes, embeds: [embedAusencia], components: [rowAusencia] });
 
@@ -428,9 +433,7 @@ Caso você vá ficar ausente por **mais de 2 dias**, é obrigatório preencher o
 client.on(Events.InteractionCreate, async (interaction) => {
     try {
         if (interaction.isButton()) {
-            // ------------------------------------------
             // REGISTRO DE CIDADANIA - INÍCIO
-            // ------------------------------------------
             if (interaction.customId === 'btn_iniciar_registro') {
                 const selectMenu = new StringSelectMenuBuilder()
                     .setCustomId('select_grupo_registro')
@@ -453,9 +456,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
                 });
             }
 
-            // ------------------------------------------
             // REGISTRO DE AUSÊNCIA - INÍCIO (ABRE MODAL)
-            // ------------------------------------------
             if (interaction.customId === 'btn_iniciar_ausencia') {
                 const modal = new ModalBuilder()
                     .setCustomId('modal_ausencia')
@@ -512,9 +513,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
                 return interaction.showModal(modal);
             }
 
-            // ------------------------------------------
             // BOTÕES DA LIDERANÇA NO LOG DE AUSÊNCIA
-            // ------------------------------------------
             if (interaction.customId.startsWith('btn_ausencia_ciente_') || interaction.customId.startsWith('btn_ausencia_finalizar_')) {
                 const isCiente = interaction.customId.startsWith('btn_ausencia_ciente_');
                 const targetUserId = interaction.customId.replace('btn_ausencia_ciente_', '').replace('btn_ausencia_finalizar_', '');
@@ -535,7 +534,6 @@ client.on(Events.InteractionCreate, async (interaction) => {
                     updatedEmbed.setColor('#2ECC71');
                     updatedEmbed.setTitle('✅ AUSÊNCIA RECONHECIDA E APROVADA');
                     
-                    // Atualiza ou adiciona campo de avaliação da liderança
                     const fields = updatedEmbed.data.fields || [];
                     const statusIndex = fields.findIndex(f => f.name.includes('Status'));
                     if (statusIndex !== -1) {
@@ -561,7 +559,6 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
                     await interaction.message.edit({ embeds: [updatedEmbed], components: [disabledRow] });
 
-                    // Notifica o membro no privado (DM)
                     const memberObj = await interaction.guild.members.fetch(targetUserId).catch(() => null);
                     if (memberObj) {
                         await memberObj.send(`✅ Sua solicitação de **ausência** foi analisada e marcada como **Aprovada / Ciente** pela liderança (<@${interaction.user.id}>) no servidor **${interaction.guild.name}**.`).catch(() => {});
@@ -587,9 +584,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
                 }
             }
 
-            // ------------------------------------------
             // APROVAÇÃO / RECUSA DE REGISTRO DE CIDADANIA
-            // ------------------------------------------
             if (interaction.customId.startsWith('btn_aprovar_') || interaction.customId.startsWith('btn_recusar_')) {
                 const isApprove = interaction.customId.startsWith('btn_aprovar_');
                 
@@ -675,9 +670,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
             }
         }
 
-        // ------------------------------------------
         // SELEÇÃO DE GRUPO NO REGISTRO
-        // ------------------------------------------
         if (interaction.isStringSelectMenu() && interaction.customId === 'select_grupo_registro') {
             const roleId = interaction.values[0];
             const grupoObj = CONFIG.GRUPOS.find(g => g.roleId === roleId) || CONFIG.GRUPOS[0];
@@ -719,9 +712,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
             await interaction.showModal(modal);
         }
 
-        // ------------------------------------------
         // SUBMIT DO MODAL DE REGISTRO
-        // ------------------------------------------
         if (interaction.isModalSubmit() && interaction.customId.startsWith('modal_registro_')) {
             const roleId = interaction.customId.replace('modal_registro_', '');
             const grupoObj = CONFIG.GRUPOS.find(g => g.roleId === roleId) || CONFIG.GRUPOS[0];
@@ -772,9 +763,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
             });
         }
 
-        // ------------------------------------------
         // SUBMIT DO MODAL DE AUSÊNCIA
-        // ------------------------------------------
         if (interaction.isModalSubmit() && interaction.customId === 'modal_ausencia') {
             const nomeId = interaction.fields.getTextInputValue('input_ausencia_nome_id').trim();
             const cargo = interaction.fields.getTextInputValue('input_ausencia_cargo').trim();
@@ -810,7 +799,6 @@ client.on(Events.InteractionCreate, async (interaction) => {
                     .setEmoji('🏁')
             );
 
-            // Envia no canal exclusivo de logs de ausência
             const canalAusenciaLog = interaction.guild.channels.cache.get(CONFIG.CANAL_AUSENCIA_LOGS_ID) ||
                                      await interaction.guild.channels.fetch(CONFIG.CANAL_AUSENCIA_LOGS_ID).catch(() => null);
 
