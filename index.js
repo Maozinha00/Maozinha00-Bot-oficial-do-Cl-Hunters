@@ -52,8 +52,8 @@ const CONFIG = {
     
     // IDs dos Canais do Servidor
     CANAL_REGISTRO_ID: process.env.CANAL_REGISTRO_ID || "1515125852264603700",
-    CANAL_APROVACAO_ID: process.env.CANAL_APROVACAO_ID || "1515125854890229800",
-    CANAL_LOGS_ID: process.env.CANAL_LOGS_ID || "1515125856710688800", // Canal de Logs de Sets Aprovados
+    CANAL_APROVACAO_ID: process.env.CANAL_APROVACAO_ID || "1515448473246498866",
+    CANAL_LOGS_ID: process.env.CANAL_LOGS_ID || "1515448473246498866", // Canal de Logs de Sets Aprovados
     CANAL_ENTRADA_SAIDA_ID: process.env.CANAL_ENTRADA_SAIDA_ID || "1515125850419220500",
     
     // IDs do Painel de Ausência
