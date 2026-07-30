@@ -254,11 +254,8 @@ client.once(Events.ClientReady, (c) => {
 
 // Evento: Entrou novo membro
 client.on(Events.GuildMemberAdd, async (member) => {
-    try {
-        if (CONFIG.CARGO_AMIGOS_ID) {
-            await member.roles.add(CONFIG.CARGO_AMIGOS_ID).catch((err) => {
-                console.error(`⚠️ Erro ao adicionar cargo inicial ao membro ${member.user.tag}:`, err.message);
-            });
+    // Não adicionar cargo automaticamente
+});
         }
 
         if (CONFIG.CANAL_ENTRADA_SAIDA_ID) {
