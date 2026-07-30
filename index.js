@@ -4,12 +4,19 @@
  * CLÃ HUNTERS & FAMÍLIA SOUZA INFINITA (DISCORD.JS V14)
  * ============================================================================
  * 
- * 🚀 FUNCIONA DIRETO NO NODE.JS (ESM / COMMONJS)
+ * 🚀 FUNCIONA 100% DIRETO (SEM NECESSIDADE DE ARQUIVO .ENV OU DOTENV!)
  * 
- * Instalação dos pacotes necessários:
+ * 📜 REGISTRO & REGRAS NO PV (PRIVADO) COM CONFIRMAÇÃO:
+ * - Painel do Canal: Exibe o painel exatamente com o botão "🏡 Realizar Registro".
+ * - Ao iniciar o registro, o bot envia o Embed com as regras no PRIVADO (PV/DM)
+ *   junto com o botão "✅ Li e Aceito as Regras".
+ * - O bot registra e acusa para a Staff no canal de aprovação se o jogador clicou
+ *   no botão confirmando a leitura das regras!
+ * 
+ * Instalação dos pacotes:
  * npm install discord.js express
  * 
- * Execução:
+ * Modo de uso:
  * node index.js
  */
 
@@ -27,75 +34,72 @@ import {
     TextInputBuilder,
     TextInputStyle,
     Events,
-    PermissionsBitField
+    PermissionsBitField,
+    Collection
 } from "discord.js";
 
 // ===============================
-// CONFIGURAÇÃO DE TOKEN & AMBIENTE
+// CONFIGURAÇÃO DE AMBIENTE & TOKEN
 // ===============================
-const TOKEN = process.env.TOKEN || "COLE_SEU_TOKEN_AQUI";
+const TOKEN = process.env.DISCORD_TOKEN || process.env.TOKEN || "SEU_DISCORD_BOT_TOKEN";
 const PORT = process.env.PORT || 3000;
 
-// Armazena em memória se o usuário clicou no botão de confirmação das regras no PV
+if (!TOKEN || TOKEN.includes("SEU_DISCORD_BOT_TOKEN")) {
+    console.warn("⚠️ AVISO: Insira o Token do seu Bot do Discord no arquivo index.js ou nas variáveis de ambiente!");
+}
+
+// Map em memória para registrar se o jogador clicou no botão de confirmação das regras no PV
 const confirmacoesRegras = new Map();
 
 // ===============================
-// CONFIGURAÇÕES DO SERVIDOR
+// CONFIGURAÇÃO GERAL DO SISTEMA (Ajuste os IDs conforme o seu servidor)
 // ===============================
 const CONFIG = {
-    // IDs dos Canais do Servidor (Substitua pelos IDs reais do seu Discord)
-    CANAL_REGISTRO_ID: "123456789012345678",      // Canal #pedir-set
-    CANAL_APROVACAO_ID: "123456789012345679",     // Canal da Staff #aprovação-set
-    CANAL_ENTRADA_SAIDA_ID: "123456789012345680", // Canal de bem-vindo
+    CLIENT_ID: process.env.CLIENT_ID || "SEU_CLIENT_ID",
+    GUILD_ID: process.env.GUILD_ID || "SEU_GUILD_ID",
+    
+    // IDs dos Canais do Servidor
+    CANAL_REGISTRO_ID: process.env.CANAL_REGISTRO_ID || "ID_CANAL_REGISTRO",
+    CANAL_APROVACAO_ID: process.env.CANAL_APROVACAO_ID || "ID_CANAL_APROVACAO",
+    CANAL_LOGS_ID: process.env.CANAL_LOGS_ID || "ID_CANAL_LOGS",
+    CANAL_ENTRADA_SAIDA_ID: process.env.CANAL_ENTRADA_SAIDA_ID || "ID_CANAL_ENTRADA_SAIDA",
+    
+    // IDs do Painel de Ausência
+    CANAL_PAINEL_AUSENCIA_ID: process.env.CANAL_PAINEL_AUSENCIA_ID || "ID_CANAL_PAINEL_AUSENCIA",
+    CANAL_AUSENCIA_LOGS_ID: process.env.CANAL_AUSENCIA_LOGS_ID || "ID_CANAL_AUSENCIA_LOGS",
 
-    // Cargos de Administrador Autorizados a Aprovar
+    // Cargos Administradores Autorizados
     CARGOS_ADMINS_APROVADORES: [
-        "123456789012345681" // ID do Cargo Admin/Staff
-    ],
+        process.env.CARGO_ADMIN_1 || "ID_CARGO_ADMIN_1",
+        process.env.CARGO_ADMIN_2 || "ID_CARGO_ADMIN_2"
+    ].filter(Boolean),
+
+    CARGO_HUNTERS_RECRUTA_ID: process.env.CARGO_HUNTERS_RECRUTA || "ID_CARGO_HUNTERS_RECRUTA",
 
     EMBED_COLOR: "#2ECC71",
+    EMBED_COLOR_AUSENCIA: "#E67E22",
     FOOTER: "FiveZ & Lumenfall • Sistema Automático Anti-Queda • Família Souza",
 
-    // Grupos / Facções Configurados
+    // Lista de Grupos / Facções
     GRUPOS: [
         {
-            id: "grupo_hunters",
-            name: "Hunters Recruta",
-            tag: "|HUNTERS REC|",
-            roleId: "123456789012345682",
-            description: "Grupo oficial de recrutas Hunters",
-            emoji: "🏹"
+            "id": "grupo_hunters",
+            "name": "Clã Hunters Recruta",
+            "roleId": "123456789012345678",
+            "tag": "|HUNTERS REC|",
+            "description": "Set padrão para recrutas do Clã Hunters",
+            "emoji": "🏹"
         },
         {
-            id: "grupo_souza",
-            name: "Família Souza Infinita",
-            tag: "|SOUZA|",
-            roleId: "123456789012345683",
-            description: "Grupo principal Família Souza",
-            emoji: "👑"
+            "id": "grupo_souza",
+            "name": "Família Souza",
+            "roleId": "123456789012345679",
+            "tag": "|FAMÍLIA SOUZA|",
+            "description": "Membros oficiais da Família Souza Infinita",
+            "emoji": "👑"
         }
     ]
 };
-
-// ===============================
-// REGRAS OFICIAIS ENVIADAS NO PV
-// ===============================
-const REGRAS_TEXTO = `
-📌 **1. Respeito Absoluto à Hierarquia:**
-Obedeça aos líderes do Clã Hunters & Família Souza. Insubordinação não será tolerada.
-
-📌 **2. Proibida Agressão Interna (TK/Fogo Amigo):**
-Proibido atacar membros da mesma facção sob qualquer hipótese.
-
-📌 **3. Identificação no Discord (Apelido/Set):**
-Mantenha a tag [HUNTERS] ou [SOUZA], seu Nome e ID no jogo atualizados.
-
-📌 **4. Fone de Ouvido & Microfone no Voice:**
-Mantenha comunicação clara durante ações e confrontos no FiveM.
-
-🚨 **5. REGRA DE INATIVIDADE DE 3 DIAS:**
-Ficar 3 dias sem entrar no servidor sem registrar ausência prévia no painel resultará em KICK AUTOMÁTICO e perda de cargos!
-`;
 
 // ===============================
 // INSTÂNCIA DO CLIENTE DISCORD
@@ -111,32 +115,70 @@ const client = new Client({
     partials: [Partials.Channel, Partials.Message, Partials.GuildMember]
 });
 
-// Servidor Express Keep-Alive (Para hospedar na SquareCloud, Replit, Render, etc.)
+// ===============================
+// SERVIDOR EXPRESS KEEP-ALIVE
+// ===============================
 const app = express();
-app.get('/', (req, res) => res.send('🟢 Bot Família Souza & Clã Hunters Online 24/7!'));
-app.listen(PORT, '0.0.0.0', () => console.log(`🌐 Servidor Web rodando na porta ${PORT}`));
 
-// Proteção Anti-Crash
-process.on('unhandledRejection', reason => console.error('⚠️ Rejeição não tratada:', reason));
-process.on('uncaughtException', error => console.error('⚠️ Exceção não capturada:', error));
+app.get('/', (req, res) => {
+    res.send('🟢 Bot Família Souza & Clã Hunters Online 24/7!');
+});
 
-// Helper para formatar apelido com limite de 32 caracteres do Discord
-function formatarApelido(tag, nome, id) {
+app.get('/health', (req, res) => {
+    res.status(200).json({
+        status: 'OK',
+        botConnected: Boolean(client.user),
+        botUser: client.user ? client.user.tag : null,
+        uptime: Math.floor(process.uptime()),
+        timestamp: new Date().toISOString()
+    });
+});
+
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`🌐 Servidor HTTP Keep-Alive rodando na porta ${PORT}`);
+});
+
+// Proteção Anti-Crash Global
+process.on('unhandledRejection', (reason) => {
+    console.error('⚠️ [Anti-Crash] Rejeição não tratada:', reason);
+});
+process.on('uncaughtException', (error) => {
+    console.error('⚠️ [Anti-Crash] Exceção não capturada:', error);
+});
+
+// ===============================
+// FUNÇÕES AUXILIARES
+// ===============================
+function formatarApelidoSeguro(tag, nome, id) {
     let nick = `${tag} ${nome} | ${id}`.trim();
     if (nick.length > 32) {
-        const extraLen = tag.length + id.length + 4;
-        const maxNome = Math.max(1, 32 - extraLen);
+        const tamanhoExtra = tag.length + id.length + 4;
+        const maxNome = Math.max(1, 32 - tamanhoExtra);
         nick = `${tag} ${nome.substring(0, maxNome)} | ${id}`.trim();
     }
     return nick.substring(0, 32);
 }
 
-// Envia o Embed de Regras com Botão no PV do Jogador
-async function enviarRegrasPV(user) {
+/**
+ * Função para criar o Embed de Regras com o Botão de Confirmação para envio no PV
+ */
+async function enviarRegrasPVComConfirmacao(user) {
+    const regrasTexto = `📌 **1. RESPEITO À HIERARQUIA & LIDERANÇA:**
+Respeite todos os membros e as decisões da administração e liderança.
+
+📌 **2. INATIVIDADE MÁXIMA DE 3 DIAS:**
+Ficar 3 dias sem logar no servidor sem registrar no painel de ausência resultará em desvinculação automática e remoção do Set.
+
+📌 **3. NOME E TAG OBRIGATÓRIOS:**
+Mantenha a tag oficial do seu grupo visível no seu apelido no Discord e no jogo.
+
+📌 **4. PROIBIDO APOSTAS E COMPORTAMENTO TÓXICO:**
+Evite brigas, discussões ou ofensas nos canais de texto ou voz do servidor.`;
+
     const embedPV = new EmbedBuilder()
         .setColor('#2ECC71')
         .setTitle('📜 REGRAS OBRIGATÓRIAS DO CLÃ HUNTERS & FAMÍLIA SOUZA')
-        .setDescription(`Olá <@${user.id}>! Seja bem-vindo(a)!\n\nAbaixo estão as regras oficiais do servidor. Para concluir seu registro, **confirme no botão verde abaixo que você leu as regras**:\n${REGRAS_TEXTO}\n\n👇 **Clique no botão verde para confirmar para a Staff:**`)
+        .setDescription(`Olá <@${user.id}>! Seja bem-vindo(a)!\n\nAbaixo estão as regras oficiais do servidor. Ao solicitar seu Set, você deve confirmar a leitura clicando no botão verde abaixo:\n\n${regrasTexto}\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n🚨 **REGRA IMPORTANTE DE INATIVIDADE (3 DIAS):**\nFicar **3 dias sem entrar** no servidor sem registrar a ausência prévia no painel resultará na **remoção automática do clã e perda do Set**!\n\n👇 **Clique no botão abaixo para confirmar para a Staff que você leu e concorda com as regras:**`)
         .setFooter({ text: CONFIG.FOOTER })
         .setTimestamp();
 
@@ -151,7 +193,8 @@ async function enviarRegrasPV(user) {
     try {
         await user.send({ embeds: [embedPV], components: [rowPV] });
         return true;
-    } catch (err) {
+    } catch (dmErr) {
+        console.log(`PV fechado para ${user.tag}`);
         return false;
     }
 }
@@ -159,26 +202,62 @@ async function enviarRegrasPV(user) {
 // ===============================
 // EVENTOS DO BOT
 // ===============================
-client.once(Events.ClientReady, c => {
-    console.log(`🤖 BOT CONECTADO COMO: ${c.user.tag}`);
+client.once(Events.ClientReady, (c) => {
+    console.log(`🤖 BOT FAMÍLIA SOUZA & HUNTERS CONECTADO COMO: ${c.user.tag}`);
 });
 
-// Comando !painel para postar o painel oficial
-client.on(Events.MessageCreate, async message => {
-    if (message.author.bot || !message.guild) return;
+/**
+ * Entrada de novo membro
+ */
+client.on(Events.GuildMemberAdd, async (member) => {
+    try {
+        console.log(`👤 Novo membro entrou: ${member.user.tag}`);
 
-    if (message.content.toLowerCase() === '!painel') {
-        if (!message.member?.permissions.has(PermissionsBitField.Flags.Administrator)) {
-            return message.reply('❌ Apenas administradores podem usar este comando.');
+        if (CONFIG.CARGO_HUNTERS_RECRUTA_ID && member.roles.cache.has(CONFIG.CARGO_HUNTERS_RECRUTA_ID)) {
+            await member.roles.remove(CONFIG.CARGO_HUNTERS_RECRUTA_ID).catch(() => {});
         }
 
-        const icon = message.guild.iconURL() || 'https://i.imgur.com/8Q8S4Zb.png';
+        // Tenta enviar as regras com botão de confirmação no PV assim que o membro entra
+        await enviarRegrasPVComConfirmacao(member.user);
+
+        if (CONFIG.CANAL_ENTRADA_SAIDA_ID) {
+            const channel = member.guild.channels.cache.get(CONFIG.CANAL_ENTRADA_SAIDA_ID);
+            if (channel) {
+                const embed = new EmbedBuilder()
+                    .setColor(CONFIG.EMBED_COLOR)
+                    .setTitle('🚪 BEM-VINDO À FAMÍLIA SOUZA & CLÃ HUNTERS!')
+                    .setDescription(`Seja bem-vindo(a) <@${member.id}>!\n\n> 📝 Dirija-se ao canal <#${CONFIG.CANAL_REGISTRO_ID}>\n> 📩 As regras oficiais do clã foram enviadas no seu **PV (Privado)** com botão de confirmação!\n> 🎯 Clique no botão **Realizar Registro** para pedir seu Set.`)
+                    .setThumbnail(member.user.displayAvatarURL())
+                    .setFooter({ text: CONFIG.FOOTER })
+                    .setTimestamp();
+
+                await channel.send({ content: `<@${member.id}>`, embeds: [embed] }).catch(() => {});
+            }
+        }
+    } catch (err) {
+        console.error('Erro no GuildMemberAdd:', err);
+    }
+});
+
+// Comandos de Texto para Administradores (!painel, !painelausencia)
+client.on(Events.MessageCreate, async (message) => {
+    if (message.author.bot || !message.guild) return;
+
+    const command = message.content.toLowerCase().trim();
+
+    // !painel (Posta o PAINEL OFICIAL FAMÍLIA SOUZA INFINITA DA FOTO DO USUÁRIO)
+    if (command === '!painel' || command === '!postarpainel') {
+        if (!message.member?.permissions.has(PermissionsBitField.Flags.Administrator)) {
+            return message.reply('❌ Apenas administradores podem executar este comando.');
+        }
+
+        const guildIcon = message.guild.iconURL() || 'https://i.imgur.com/8Q8S4Zb.png';
 
         const embed = new EmbedBuilder()
             .setColor(CONFIG.EMBED_COLOR)
-            .setAuthor({ name: '👑 FAMÍLIA SOUZA INFINITA 👑', iconURL: icon })
+            .setAuthor({ name: '👑 FAMÍLIA SOUZA INFINITA 👑', iconURL: guildIcon })
             .setTitle('🏡 Sistema de Registro — Cidadania & Grupos')
-            .setThumbnail(icon)
+            .setThumbnail(guildIcon)
             .setDescription(`# Seja bem-vindo à nossa Comunidade!
 
 📢 **AVISO IMPORTANTE PARA TODOS (@everyone):**
@@ -207,49 +286,209 @@ Para desbloquear todos os canais do servidor e registrar sua cidadania, selecion
         await message.channel.send({ content: '@everyone', embeds: [embed], components: [row] });
         return message.reply('✅ Painel Oficial de Registro postado com sucesso!');
     }
+
+    // !painelausencia
+    if (command === '!painelausencia' || command === '!postarpainelausencia') {
+        if (!message.member?.permissions.has(PermissionsBitField.Flags.Administrator)) {
+            return message.reply('❌ Apenas administradores podem executar este comando.');
+        }
+
+        const embedAusencia = new EmbedBuilder()
+            .setColor(CONFIG.EMBED_COLOR_AUSENCIA)
+            .setTitle('📋 PAINEL DE REGISTRO DE AUSÊNCIA • HUNTERS & SOUZA')
+            .setDescription(`
+# **MODELO DE AUSÊNCIA • HUNTERS**
+
+Caso vá ficar ausente por **mais de 2 dias**, é obrigatório preencher o formulário para evitar a **remoção por inatividade de 3 dias**.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⚠️ **REGRAS IMPORTANTES DE INATIVIDADE:**
+• 🚨 Ficar **3 dias sem entrar** no servidor sem registrar a ausência resultará na **remoção do painel e do clã**!
+• 📢 A ausência deve ser informada **antes** de ficar inativo.
+• ⏰ Caso o retorno atrase, comunique a liderança novamente.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+👇 *Clique no botão abaixo para registrar sua ausência:*
+`)
+            .setFooter({ text: CONFIG.FOOTER })
+            .setTimestamp();
+
+        const rowAusencia = new ActionRowBuilder().addComponents(
+            new ButtonBuilder()
+                .setCustomId('btn_iniciar_ausencia')
+                .setLabel('Registrar Ausência')
+                .setStyle(ButtonStyle.Primary)
+                .setEmoji('📝')
+        );
+
+        await message.channel.send({ embeds: [embedAusencia], components: [rowAusencia] });
+        return message.reply('✅ Painel de Ausência postado com sucesso!');
+    }
 });
 
-// Interações (Botões, Menus e Modais)
-client.on(Events.InteractionCreate, async interaction => {
+// ===============================
+// HANDLER DE INTERAÇÕES (BOTÕES / MODAIS / MENUS)
+// ===============================
+client.on(Events.InteractionCreate, async (interaction) => {
     try {
-        // 1. CONFIRMAÇÃO DAS REGRAS NO PV
-        if (interaction.isButton() && interaction.customId === 'btn_confirmar_regras_pv') {
-            confirmacoesRegras.set(interaction.user.id, {
-                confirmado: true,
-                data: new Date()
-            });
+        if (interaction.isButton()) {
 
-            return interaction.reply({
-                content: '✅ **CONFIRMAÇÃO REGISTRADA COM SUCESSO!**\nObrigado por confirmar a leitura das regras. A Staff já foi notificada no seu pedido de Set!',
-                ephemeral: false
-            });
+            // 1. CONFIRMAÇÃO DE LEITURA DAS REGRAS NO PV DO JOGADOR
+            if (interaction.customId === 'btn_confirmar_regras_pv') {
+                confirmacoesRegras.set(interaction.user.id, {
+                    confirmado: true,
+                    dataConfirmacao: new Date()
+                });
+
+                // Tenta notificar o canal de aprovação da Staff
+                try {
+                    let canalAprov = null;
+                    if (CONFIG.CANAL_APROVACAO_ID) {
+                        canalAprov = await client.channels.fetch(CONFIG.CANAL_APROVACAO_ID).catch(() => null);
+                    }
+                    if (canalAprov && typeof canalAprov.send === 'function') {
+                        const embedConfirm = new EmbedBuilder()
+                            .setColor('#2ECC71')
+                            .setTitle('📜 REGRAS CONFIRMADAS NO PV')
+                            .setDescription(`O jogador <@${interaction.user.id}> (${interaction.user.tag}) acabou de clicar no botão verde no PV e **confirmou que leu e concorda com todas as regras do clã**!`)
+                            .setTimestamp();
+
+                        await canalAprov.send({ embeds: [embedConfirm] }).catch(() => {});
+                    }
+                } catch (e) {}
+
+                return interaction.reply({
+                    content: '✅ **CONFIRMAÇÃO REGISTRADA COM SUCESSO!**\nObrigado por ler e aceitar as regras oficiais do Clã Hunters & Família Souza. A Staff foi notificada no canal de aprovação!',
+                    ephemeral: false
+                });
+            }
+
+            // 2. BOTÃO "REALIZAR REGISTRO" NO CANAL (#pedir-set)
+            if (interaction.customId === 'btn_iniciar_registro') {
+                // Envia imediatamente as regras com botão de confirmação no PV do jogador
+                const enviouPV = await enviarRegrasPVComConfirmacao(interaction.user);
+
+                const selectMenu = new StringSelectMenuBuilder()
+                    .setCustomId('select_grupo_registro')
+                    .setPlaceholder('🎯 Escolha o seu Grupo / Facção...')
+                    .addOptions(
+                        CONFIG.GRUPOS.map(g => ({
+                            label: g.name,
+                            value: g.roleId,
+                            description: g.description,
+                            emoji: g.emoji
+                        }))
+                    );
+
+                const row = new ActionRowBuilder().addComponents(selectMenu);
+
+                const msgResponse = enviouPV
+                    ? '📩 **As regras foram enviadas no seu PV (Privado) com o botão de confirmação!**\n\n🎯 Escolha abaixo para qual grupo deseja solicitar o Set:'
+                    : '⚠️ *Nota: Seu PV parece estar fechado nas configurações do Discord. Abra o PV para receber e confirmar as regras!*\n\n🎯 Escolha abaixo para qual grupo deseja solicitar o Set:';
+
+                return interaction.reply({
+                    content: msgResponse,
+                    components: [row],
+                    ephemeral: true
+                });
+            }
+
+            // 3. APROVAÇÃO OU RECUSA DO SET PELA STAFF
+            if (interaction.customId.startsWith('btn_aprovar_') || interaction.customId.startsWith('btn_recusar_')) {
+                const isApprove = interaction.customId.startsWith('btn_aprovar_');
+                
+                const hasAdmin = CONFIG.CARGOS_ADMINS_APROVADORES.some(r => interaction.member?.roles.cache.has(r)) ||
+                                 interaction.member?.permissions.has(PermissionsBitField.Flags.Administrator);
+
+                if (!hasAdmin) {
+                    return interaction.reply({ content: '❌ Permissão negada! Apenas Administradores podem aprovar Sets.', ephemeral: true });
+                }
+
+                const embed = interaction.message.embeds[0];
+                if (!embed) return interaction.reply({ content: '❌ Embed não encontrada.', ephemeral: true });
+
+                const userDiscordField = embed.fields?.find(f => f.name.includes('Usuário Discord'));
+                let userId = userDiscordField ? userDiscordField.value.match(/<@!?(\d+)>/)?.[1] : null;
+
+                if (!userId) userId = interaction.customId.replace('btn_aprovar_', '').replace('btn_recusar_', '');
+
+                const member = await interaction.guild?.members.fetch(userId).catch(() => null);
+                if (!member) return interaction.reply({ content: '❌ Membro não encontrado no servidor.', ephemeral: true });
+
+                const nomeField = embed.fields?.find(f => f.name.includes('Nome no Jogo'))?.value?.replace(/\*/g, '') || 'N/A';
+                const idField = embed.fields?.find(f => f.name.includes('ID no Jogo'))?.value?.replace(/\*/g, '') || 'N/A';
+                const grupoField = embed.fields?.find(f => f.name.includes('Grupo Escolhido'))?.value || '';
+
+                const matchedGroup = CONFIG.GRUPOS.find(g => grupoField.includes(g.name)) || CONFIG.GRUPOS[0];
+
+                if (isApprove) {
+                    const nickFinal = formatarApelidoSeguro(matchedGroup.tag, nomeField, idField);
+
+                    try { await member.setNickname(nickFinal); } catch (e) {}
+                    try { await member.roles.add(matchedGroup.roleId); } catch (e) {}
+
+                    const approvedEmbed = EmbedBuilder.from(embed)
+                        .setColor('#2ECC71')
+                        .setTitle('✅ SET & CIDADANIA APROVADA')
+                        .setDescription(`O jogador teve o Set aprovado e o apelido ajustado no servidor.`)
+                        .addFields({ name: '👮 Aprovado por', value: `<@${interaction.user.id}>`, inline: false });
+
+                    await interaction.message.edit({ embeds: [approvedEmbed], components: [] });
+                    await member.send(`🎉 **Parabéns!** Seu Set para **${matchedGroup.name}** foi APROVADO! Seu apelido foi ajustado para \`${nickFinal}\`.`).catch(() => {});
+
+                    return interaction.reply({ content: `✅ Set de <@${userId}> APROVADO com sucesso!`, ephemeral: true });
+                } else {
+                    const rejectedEmbed = EmbedBuilder.from(embed)
+                        .setColor('#E74C3C')
+                        .setTitle('❌ SET RECUSADO')
+                        .addFields({ name: '👮 Recusado por', value: `<@${interaction.user.id}>`, inline: false });
+
+                    await interaction.message.edit({ embeds: [rejectedEmbed], components: [] });
+                    await member.send(`❌ Seu pedido de Set para o Clã Hunters foi recusado.`).catch(() => {});
+
+                    return interaction.reply({ content: `❌ Set de <@${userId}> recusado.`, ephemeral: true });
+                }
+            }
+
+            // 4. BOTÃO REGISTRAR AUSÊNCIA
+            if (interaction.customId === 'btn_iniciar_ausencia') {
+                const modal = new ModalBuilder()
+                    .setCustomId('modal_ausencia')
+                    .setTitle('Formulário de Ausência • Hunters');
+
+                modal.addComponents(
+                    new ActionRowBuilder().addComponents(
+                        new TextInputBuilder()
+                            .setCustomId('input_ausencia_nome_id')
+                            .setLabel('Nome e ID no Jogo')
+                            .setPlaceholder('Ex: Bruno Hunter | ID: 1234')
+                            .setStyle(TextInputStyle.Short)
+                            .setRequired(true)
+                    ),
+                    new ActionRowBuilder().addComponents(
+                        new TextInputBuilder()
+                            .setCustomId('input_ausencia_datas')
+                            .setLabel('Período de Ausência (Início e Retorno)')
+                            .setPlaceholder('Ex: 30/07 a 05/08')
+                            .setStyle(TextInputStyle.Short)
+                            .setRequired(true)
+                    ),
+                    new ActionRowBuilder().addComponents(
+                        new TextInputBuilder()
+                            .setCustomId('input_ausencia_motivo')
+                            .setLabel('Motivo da Ausência')
+                            .setPlaceholder('Descreva o motivo...')
+                            .setStyle(TextInputStyle.Paragraph)
+                            .setRequired(true)
+                    )
+                );
+
+                return interaction.showModal(modal);
+            }
         }
 
-        // 2. BOTÃO "REALIZAR REGISTRO" NO CANAL
-        if (interaction.isButton() && interaction.customId === 'btn_iniciar_registro') {
-            // Tenta enviar as regras no PV
-            const enviouPV = await enviarRegrasPV(interaction.user);
-
-            const selectMenu = new StringSelectMenuBuilder()
-                .setCustomId('select_grupo_registro')
-                .setPlaceholder('🎯 Escolha o seu Grupo / Facção...')
-                .addOptions(CONFIG.GRUPOS.map(g => ({
-                    label: g.name,
-                    value: g.roleId,
-                    description: g.description,
-                    emoji: g.emoji
-                })));
-
-            const row = new ActionRowBuilder().addComponents(selectMenu);
-
-            const msg = enviouPV
-                ? '📩 **As regras foram enviadas no seu PV (Privado) com o botão de confirmação!**\n\n🎯 Selecione seu grupo abaixo:'
-                : '⚠️ *Seu PV está fechado nas configurações do Discord. Abra o PV para receber e confirmar as regras!*\n\n🎯 Selecione seu grupo abaixo:';
-
-            return interaction.reply({ content: msg, components: [row], ephemeral: true });
-        }
-
-        // 3. SELEÇÃO DE GRUPO NO MENU
+        // SELEÇÃO DO MENU DE GRUPOS
         if (interaction.isStringSelectMenu() && interaction.customId === 'select_grupo_registro') {
             const roleId = interaction.values[0];
             const grupoObj = CONFIG.GRUPOS.find(g => g.roleId === roleId) || CONFIG.GRUPOS[0];
@@ -260,34 +499,49 @@ client.on(Events.InteractionCreate, async interaction => {
 
             modal.addComponents(
                 new ActionRowBuilder().addComponents(
-                    new TextInputBuilder().setCustomId('input_nome').setLabel('Nome no Jogo').setPlaceholder('Ex: Bruno Hunters').setStyle(TextInputStyle.Short).setRequired(true)
+                    new TextInputBuilder()
+                        .setCustomId('input_nome_jogo')
+                        .setLabel('Nome / Apelido no Jogo')
+                        .setPlaceholder('Ex: Bruno Hunters')
+                        .setStyle(TextInputStyle.Short)
+                        .setRequired(true)
                 ),
                 new ActionRowBuilder().addComponents(
-                    new TextInputBuilder().setCustomId('input_id').setLabel('ID Numérico').setPlaceholder('Ex: 4502').setStyle(TextInputStyle.Short).setRequired(true)
+                    new TextInputBuilder()
+                        .setCustomId('input_id_jogo')
+                        .setLabel('Seu ID Numérico')
+                        .setPlaceholder('Ex: 4502')
+                        .setStyle(TextInputStyle.Short)
+                        .setRequired(true)
                 ),
                 new ActionRowBuilder().addComponents(
-                    new TextInputBuilder().setCustomId('input_recrutador').setLabel('Quem recrutou?').setPlaceholder('Ex: Alex Liderança').setStyle(TextInputStyle.Short).setRequired(true)
+                    new TextInputBuilder()
+                        .setCustomId('input_contratante')
+                        .setLabel('Quem te recrutou / convidou?')
+                        .setPlaceholder('Ex: Bruno Liderança')
+                        .setStyle(TextInputStyle.Short)
+                        .setRequired(true)
                 )
             );
 
             return interaction.showModal(modal);
         }
 
-        // 4. ENVIO DO FORMULÁRIO (MODAL SUBMIT)
+        // MODAL SUBMIT DO REGISTRO DE SET
         if (interaction.isModalSubmit() && interaction.customId.startsWith('modal_registro_')) {
             const roleId = interaction.customId.replace('modal_registro_', '');
             const grupoObj = CONFIG.GRUPOS.find(g => g.roleId === roleId) || CONFIG.GRUPOS[0];
 
-            const nome = interaction.fields.getTextInputValue('input_nome').trim();
-            const id = interaction.fields.getTextInputValue('input_id').trim();
-            const recrutador = interaction.fields.getTextInputValue('input_recrutador').trim();
+            const nomeJogo = interaction.fields.getTextInputValue('input_nome_jogo').trim();
+            const idJogo = interaction.fields.getTextInputValue('input_id_jogo').trim();
+            const contratante = interaction.fields.getTextInputValue('input_contratante').trim();
 
-            const nickFinal = formatarApelido(grupoObj.tag, nome, id);
+            const nickFinal = formatarApelidoSeguro(grupoObj.tag, nomeJogo, idJogo);
 
-            // Verifica se clicou no botão do PV
-            const confirmacao = confirmacoesRegras.get(interaction.user.id);
-            const statusRegrasPV = confirmacao?.confirmado
-                ? '✅ **SIM — JOGADOR CLICOU E CONFIRMOU AS REGRAS NO PV!**'
+            // Verifica se o jogador clicou no botão de confirmação das regras no PV
+            const confirmacaoPv = confirmacoesRegras.get(interaction.user.id);
+            const statusRegrasPv = confirmacaoPv?.confirmado
+                ? '✅ **SIM — REGRAS LIDAS E CONFIRMADAS PELO JOGADOR NO PV!**'
                 : '⏳ **REGRAS ENVIADAS NO PV — AGUARDANDO JOGADOR CLICAR NO BOTÃO DE CONFIRMAÇÃO**';
 
             const embedAprovacao = new EmbedBuilder()
@@ -296,59 +550,110 @@ client.on(Events.InteractionCreate, async interaction => {
                 .addFields(
                     { name: '👤 Usuário Discord', value: `<@${interaction.user.id}> (${interaction.user.tag})`, inline: true },
                     { name: '🎯 Grupo Solicitado', value: `**${grupoObj.name}**`, inline: true },
-                    { name: '📜 Confirmou Regras no PV?', value: statusRegrasPV, inline: false },
-                    { name: '📝 Nome no Jogo', value: `**${nome}**`, inline: true },
-                    { name: '🔢 ID no Jogo', value: `**${id}**`, inline: true },
-                    { name: '🤝 Recrutado Por', value: `**${recrutador}**`, inline: false },
-                    { name: '🏷️ Apelido Gerado', value: `\`${nickFinal}\``, inline: false }
+                    { name: '📜 Confirmou Regras no PV?', value: statusRegrasPv, inline: false },
+                    { name: '📝 Nome no Jogo', value: `**${nomeJogo}**`, inline: true },
+                    { name: '🔢 ID no Jogo', value: `**${idJogo}**`, inline: true },
+                    { name: '🤝 Recrutado Por', value: `**${contratante}**`, inline: false },
+                    { name: '🏷️ Apelido a ser Gerado', value: `\`${nickFinal}\``, inline: false }
                 )
                 .setFooter({ text: CONFIG.FOOTER })
                 .setTimestamp();
 
             const row = new ActionRowBuilder().addComponents(
-                new ButtonBuilder().setCustomId(`btn_aprovar_${interaction.user.id}_${roleId}`).setLabel('Aprovar Cidadania & Set').setStyle(ButtonStyle.Success).setEmoji('✅'),
-                new ButtonBuilder().setCustomId(`btn_recusar_${interaction.user.id}`).setLabel('Recusar').setStyle(ButtonStyle.Danger).setEmoji('❌')
+                new ButtonBuilder()
+                    .setCustomId(`btn_aprovar_${interaction.user.id}`)
+                    .setLabel('Aprovar Cidadania & Set')
+                    .setStyle(ButtonStyle.Success)
+                    .setEmoji('✅'),
+                new ButtonBuilder()
+                    .setCustomId(`btn_recusar_${interaction.user.id}`)
+                    .setLabel('Recusar')
+                    .setStyle(ButtonStyle.Danger)
+                    .setEmoji('❌')
             );
 
-            const canalAprov = interaction.guild?.channels.cache.get(CONFIG.CANAL_APROVACAO_ID);
-            if (canalAprov) {
-                await canalAprov.send({ embeds: [embedAprovacao], components: [row] });
+            // Busca o canal de aprovação com resiliência
+            let canalAprov = null;
+            try {
+                if (CONFIG.CANAL_APROVACAO_ID) {
+                    canalAprov = await client.channels.fetch(CONFIG.CANAL_APROVACAO_ID).catch(() => null);
+                }
+                if (!canalAprov && interaction.guild) {
+                    canalAprov = interaction.guild.channels.cache.get(CONFIG.CANAL_APROVACAO_ID) ||
+                        interaction.guild.channels.cache.find(c => 
+                            c.name.toLowerCase().includes('aprova') || 
+                            c.name.toLowerCase().includes('set') || 
+                            c.name.toLowerCase().includes('staff')
+                        );
+                }
+            } catch (errCh) {
+                console.error('⚠️ Erro ao buscar canal de aprovação:', errCh);
             }
 
+            let enviouCanal = false;
+            if (canalAprov && typeof canalAprov.send === 'function') {
+                try {
+                    await canalAprov.send({ embeds: [embedAprovacao], components: [row] });
+                    enviouCanal = true;
+                    console.log(`✅ [Aprovação] Embed enviada para o canal #${canalAprov.name}`);
+                } catch (errSend) {
+                    console.error(`❌ Erro ao enviar mensagem para o canal #${canalAprov.name}:`, errSend);
+                }
+            } else {
+                console.warn(`⚠️ CANAL DE APROVAÇÃO NÃO ENCONTRADO (ID: ${CONFIG.CANAL_APROVACAO_ID}). Verifique se o ID do canal está correto no BotConfig!`);
+            }
+
+            const avisoEnvio = enviouCanal
+                ? '✅ **Pedido de Set Enviado!**\nSua solicitação para **' + grupoObj.name + '** foi enviada para o canal da Staff!\n📩 *Não se esqueça de clicar no botão verde de confirmação nas regras que enviamos no seu PV!*'
+                : '⚠️ **Pedido Registrado!**\n*Aviso: Não foi possível enviar a mensagem para o canal de aprovação. Verifique se o ID do canal de aprovação no Bot está correto e se o bot tem permissão de enviar mensagens nele!*';
+
             return interaction.reply({
-                content: `✅ **Pedido enviado com sucesso!** A Staff foi notificada.\n📩 *Lembre-se de clicar no botão verde de confirmação de leitura nas regras que enviamos no seu PV!*`,
+                content: avisoEnvio,
                 ephemeral: true
             });
         }
 
-        // 5. APROVAÇÃO PELA STAFF
-        if (interaction.isButton() && interaction.customId.startsWith('btn_aprovar_')) {
-            const [, , userId, roleId] = interaction.customId.split('_');
-            const member = await interaction.guild?.members.fetch(userId).catch(() => null);
+        // MODAL SUBMIT DA AUSÊNCIA
+        if (interaction.isModalSubmit() && interaction.customId === 'modal_ausencia') {
+            const nomeId = interaction.fields.getTextInputValue('input_ausencia_nome_id');
+            const datas = interaction.fields.getTextInputValue('input_ausencia_datas');
+            const motivo = interaction.fields.getTextInputValue('input_ausencia_motivo');
 
-            if (!member) return interaction.reply({ content: '❌ Membro não encontrado.', ephemeral: true });
+            const embedLog = new EmbedBuilder()
+                .setColor('#E67E22')
+                .setTitle('📋 REGISTRO DE AUSÊNCIA • HUNTERS & SOUZA')
+                .addFields(
+                    { name: '👤 Jogador', value: `<@${interaction.user.id}>`, inline: true },
+                    { name: '🆔 Nome & ID', value: `**${nomeId}**`, inline: true },
+                    { name: '📅 Período', value: `**${datas}**`, inline: false },
+                    { name: '📝 Motivo', value: motivo, inline: false },
+                    { name: '🛡️ Proteção de Inatividade', value: '✅ **Protegido contra remoção de 3 dias**', inline: false }
+                )
+                .setFooter({ text: CONFIG.FOOTER })
+                .setTimestamp();
 
-            const grupoObj = CONFIG.GRUPOS.find(g => g.roleId === roleId) || CONFIG.GRUPOS[0];
-            
-            // Pega o nome e ID da embed
-            const embed = interaction.message.embeds[0];
-            const nomeVal = embed.fields?.find(f => f.name.includes('Nome no Jogo'))?.value?.replace(/\*/g, '') || 'Jogador';
-            const idVal = embed.fields?.find(f => f.name.includes('ID no Jogo'))?.value?.replace(/\*/g, '') || '0000';
+            let canalLog = null;
+            try {
+                if (CONFIG.CANAL_AUSENCIA_LOGS_ID) {
+                    canalLog = await client.channels.fetch(CONFIG.CANAL_AUSENCIA_LOGS_ID).catch(() => null);
+                }
+                if (!canalLog && interaction.guild) {
+                    canalLog = interaction.guild.channels.cache.get(CONFIG.CANAL_AUSENCIA_LOGS_ID) ||
+                        interaction.guild.channels.cache.find(c => 
+                            c.name.toLowerCase().includes('ausencia') || 
+                            c.name.toLowerCase().includes('log')
+                        );
+                }
+            } catch (e) {}
 
-            const nickFinal = formatarApelido(grupoObj.tag, nomeVal, idVal);
+            if (canalLog && typeof canalLog.send === 'function') {
+                await canalLog.send({ embeds: [embedLog] }).catch(err => console.error("Erro ao enviar log de ausência:", err));
+            }
 
-            try { await member.setNickname(nickFinal); } catch (e) {}
-            try { await member.roles.add(grupoObj.roleId); } catch (e) {}
-
-            const approvedEmbed = EmbedBuilder.from(embed)
-                .setColor('#2ECC71')
-                .setTitle('✅ SET & CIDADANIA APROVADA')
-                .addFields({ name: '👮 Aprovado Por', value: `<@${interaction.user.id}>` });
-
-            await interaction.message.edit({ embeds: [approvedEmbed], components: [] });
-            await member.send(`🎉 **Parabéns!** Seu Set para **${grupoObj.name}** foi APROVADO! Seu apelido foi alterado para \`${nickFinal}\`.`).catch(() => {});
-
-            return interaction.reply({ content: `✅ Set de <@${userId}> aprovado!`, ephemeral: true });
+            return interaction.reply({
+                content: '✅ **Ausência registrada com sucesso!** Você está protegido contra a regra de remoção por 3 dias de inatividade.',
+                ephemeral: true
+            });
         }
 
     } catch (err) {
