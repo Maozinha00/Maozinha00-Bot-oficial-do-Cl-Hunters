@@ -86,7 +86,7 @@ const CONFIG = {
     EMBED_COLOR: "#2ECC71",
     EMBED_COLOR_AUSENCIA: "#E67E22",
     COLOR_HUNTERS: "#8E44AD",
-    FOOTER: "FiveZ & Lumenfall • Família Hunters • Anti-Queda",
+    FOOTER: "Sistema de Gestão & Apelidos Oficial • Clã Hunters",
     FORMATO_APELIDO: "{TAG} {NOME} | {ID}",
 
     GRUPOS: [
@@ -259,13 +259,34 @@ client.once(Events.ClientReady, (c) => {
 
 /**
  * Evento: Entrou novo membro no servidor
- * CORREÇÃO SOLICITADA:
+ * CORREÇÃO APLICADA:
  * - NENHUM cargo é concedido automaticamente.
+ * - Se o Discord Onboarding ou outro bot tentar atribuir o cargo "1515125826780135485" (Hunters Recruta) na entrada, ele é REMOVIDO ativamente.
  * - O membro recebe apenas a instrução de ir até o canal de registro pedir o set.
  */
 client.on(Events.GuildMemberAdd, async (member) => {
     try {
-        console.log(`👤 Novo membro entrou no servidor: ${member.user.tag} (${member.id}) - Nenhum cargo atribuído automaticamente.`);
+        console.log(`👤 Novo membro entrou no servidor: ${member.user.tag} (${member.id})`);
+
+        // PROTEÇÃO ATIVA ANTI-AUTO-ROLE:
+        // Caso o Discord Onboarding ou outro bot tenha atribuído automaticamente o cargo de Recruta (1515125826780135485),
+        // o bot remove imediatamente para forçar o registro manual.
+        const rolesParaRemover = [
+            CONFIG.CARGO_HUNTERS_RECRUTA_ID,
+            CONFIG.CARGO_AMIGOS_ID,
+            "1515125826780135485"
+        ].filter(id => id && id.trim() !== "");
+
+        for (const roleId of rolesParaRemover) {
+            if (member.roles.cache.has(roleId)) {
+                try {
+                    await member.roles.remove(roleId);
+                    console.log(`🛡️ Cargo automático (${roleId}) REMOVIDO na entrada de ${member.user.tag}.`);
+                } catch (e) {
+                    console.error(`⚠️ Não foi possível remover cargo automático de ${member.user.tag}:`, e.message);
+                }
+            }
+        }
 
         if (CONFIG.CANAL_ENTRADA_SAIDA_ID) {
             const channel = member.guild.channels.cache.get(CONFIG.CANAL_ENTRADA_SAIDA_ID) || 
@@ -309,38 +330,40 @@ client.on(Events.MessageCreate, async (message) => {
 
         const embed = new EmbedBuilder()
             .setColor(CONFIG.EMBED_COLOR)
-            .setAuthor({ name: '👑 FAMÍLIA SOUZA INFINITA 👑', iconURL: guildIcon })
-            .setTitle('🏡 Sistema de Registro — Cidadania & Grupos')
+            .setTitle('📜 REGRAS OBRIGATÓRIAS DO CLÃ HUNTERS')
             .setThumbnail(guildIcon)
-            .setDescription(`
-# **Seja bem-vindo à nossa Comunidade!**
+            .setDescription(`Seja bem-vindo ao **CLÃ Hunters**!
+Para garantir a organização e disciplina, leia e aceite as regras abaixo.
 
-📢 **AVISO IMPORTANTE PARA TODOS (@everyone):**
-> ⚠️ **PRAZO LIMITE DE REGISTRO:** Todo membro que entrar no servidor tem um prazo máximo de **3 dias** para realizar o registro de cidadania.
-> 🚫 Se você passar de **3 dias** no servidor sem realizar o seu registro (ficando sem os cargos dos grupos), você será **kickado automaticamente** pelo sistema!
+📌 **RESPEITO E HIERARQUIA:**
+Respeite a liderança e companheiros.
 
-Para desbloquear todos os canais do servidor e registrar sua cidadania, selecione seu grupo abaixo.
+📌 **COMPROMISSO:**
+Compareça às reuniões quando convocado.
 
-🎁 **Benefícios ao registrar:**
-> ✅ **Cargo do seu Grupo escolhido**
-> 🏷️ **Apelido Atualizado:** Com a tag da facção, seu Nome e ID
-> 🔓 **Liberação imediata** dos canais e categorias do servidor
+📌 **USO OBRIGATÓRIO DA TAG:**
+Utilize a tag [HUNTERS REC] ou [HUNTERS].
 
-👇 *Clique no botão abaixo, escolha seu grupo e preencha o formulário!*
-`)
-            .setFooter({ text: CONFIG.FOOTER })
+📌 **CANAIS E DMs:**
+Mantenha os chats organizados.
+
+📌 **DESLIGAMENTO:**
+Descumprimento resultará em expulsão.
+
+⚠️ **ATENÇÃO:** Clique no botão abaixo para liberar a aprovação do seu registro!`)
+            .setFooter({ text: 'Sistema de Gestão & Apelidos Oficial • Clã Hunters' })
             .setTimestamp();
 
         const row = new ActionRowBuilder().addComponents(
             new ButtonBuilder()
                 .setCustomId('btn_iniciar_registro')
-                .setLabel('Realizar Registro')
+                .setLabel('Liberar Aprovação do Registro')
                 .setStyle(ButtonStyle.Success)
-                .setEmoji('🏡')
+                .setEmoji('📜')
         );
 
         await message.channel.send({ content: '@everyone', embeds: [embed], components: [row] });
-        return message.reply('✅ Painel de registro publicado com sucesso!');
+        return message.reply('✅ Painel de regras e registro publicado com sucesso!');
     }
 
     // Comando !painelausencia (Painel de Ausência)
