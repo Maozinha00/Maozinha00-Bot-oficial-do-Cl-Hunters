@@ -4,16 +4,15 @@
  * CLÃ HUNTERS & FAMÍLIA SOUZA (FIVEZ & LUMENFALL)
  * ============================================================================
  * 
- * CORREÇÕES APLICADAS:
- * 1. Removida atribuição automática de cargo ao entrar (GuildMemberAdd).
- * 2. O novo membro DEVE ir até o canal de registro e "pedir o set" (registro manual).
- * 3. Corrigida a sintaxe quebrada e parênteses soltos do evento GuildMemberAdd.
- * 4. Adicionado servidor HTTP Keep-Alive anti-queda na porta 3000.
+ * 🛡️ CORREÇÕES DE SEGURANÇA & CARGOS APLICADAS:
+ * 1. 🛑 REMOVIDA QUALQUER ATRIBUIÇÃO AUTOMÁTICA DE CARGO NA ENTRADA (GuildMemberAdd).
+ * 2. 🛡️ REMOÇÃO ATIVA ANTI-AUTO-ROLE: Caso o Discord Onboarding ou outro bot dê o cargo 1515125826780135485, ele é removido imediatamente.
+ * 3. 📝 O novo membro DEVE ir até o canal de registro (<#1515448138385592361>) para preencher o formulário e "pedir o set".
+ * 4. 👮 Os cargos SÓ são entregues quando um Administrador clica em "Aprovar Cidadania".
+ * 5. 🌐 Servidor Express Keep-Alive ativo na porta 3000 para estabilidade 24/7.
  * 
- * Como rodar:
- * 1. npm install discord.js dotenv express
- * 2. Defina a variável DISCORD_TOKEN no arquivo .env
- * 3. execute: node bot.js
+ * Dependências requeridas (package.json):
+ * npm install discord.js dotenv express
  */
 
 import dotenv from 'dotenv';
@@ -39,13 +38,11 @@ import {
 // ===============================
 // CONFIGURAÇÃO DE AMBIENTE & TOKEN
 // ===============================
-const BOT_TOKEN = "DISCORD_BOT_TOKEN_AQUI";
-
-const TOKEN = process.env.DISCORD_TOKEN || process.env.TOKEN || process.env.DISCORD_BOT_TOKEN || process.env.BOT_TOKEN || BOT_TOKEN;
+const TOKEN = process.env.DISCORD_TOKEN || process.env.TOKEN || process.env.DISCORD_BOT_TOKEN || process.env.BOT_TOKEN;
 const PORT = process.env.PORT || 3000;
 
-if (!TOKEN || TOKEN.trim() === "" || TOKEN.includes("COLE_SEU_TOKEN") || TOKEN.includes("SEU_TOKEN_AQUI") || TOKEN.includes("DISCORD_BOT_TOKEN_AQUI")) {
-    console.warn("⚠️ AVISO: Configure a variável 'DISCORD_TOKEN' no seu .env ou no painel de hospedagem!");
+if (!TOKEN || TOKEN.trim() === "") {
+    console.warn("⚠️ AVISO: Configure a variável 'DISCORD_TOKEN' no seu arquivo .env ou no painel de hospedagem!");
 }
 
 // ===============================
@@ -65,7 +62,7 @@ const CONFIG = {
     CANAL_PAINEL_AUSENCIA_ID: process.env.CANAL_PAINEL_AUSENCIA_ID || "1531070382365343774",
     CANAL_AUSENCIA_LOGS_ID: process.env.CANAL_AUSENCIA_LOGS_ID || "1531670383483158700",
 
-    // Cargos Iniciais
+    // IDs de Cargos para Proteção Anti-Auto-Role
     CARGO_AMIGOS_ID: process.env.CARGO_AMIGOS_ID || "1515125842328424640",
     CARGO_HUNTERS_RECRUTA_ID: process.env.CARGO_HUNTERS_RECRUTA_ID || "1515125826780135485",
 
@@ -73,7 +70,7 @@ const CONFIG = {
     CARGOS_ADMINS_APROVADORES: [
         "1515125820836941985",
         "1515125822795546715"
-],
+    ],
 
     // Cargos Notificados ao Postar o Painel de Ausência
     CARGOS_NOTIFICACAO_AUSENCIA: [
@@ -81,13 +78,11 @@ const CONFIG = {
         "1523277774436171796",
         "1528075981078663259",
         "1515125826780135485"
-],
+    ],
 
     EMBED_COLOR: "#2ECC71",
     EMBED_COLOR_AUSENCIA: "#E67E22",
-    COLOR_HUNTERS: "#8E44AD",
     FOOTER: "Sistema de Gestão & Apelidos Oficial • Clã Hunters",
-    FORMATO_APELIDO: "{TAG} {NOME} | {ID}",
 
     GRUPOS: [
         {
@@ -168,11 +163,11 @@ const client = new Client({
 // ===============================
 // PROTEÇÃO ANTI-CRASH GLOBAL
 // ===============================
-process.on('unhandledRejection', (reason, promise) => {
+process.on('unhandledRejection', (reason) => {
     console.error('⚠️ [Anti-Crash] Rejeição não tratada capturada:', reason);
 });
 
-process.on('uncaughtException', (error, origin) => {
+process.on('uncaughtException', (error) => {
     console.error('⚠️ [Anti-Crash] Exceção não capturada:', error);
 });
 
@@ -195,7 +190,7 @@ function formatarApelidoSeguro(tag, nome, id) {
 }
 
 /**
- * Verifica todos os membros do servidor e remove tags indevidas
+ * Verifica todos os membros do servidor e remove tags indevidas de quem não possui o cargo
  */
 async function verificarELimparTags(guild) {
     let totalAnalisados = 0;
@@ -216,6 +211,7 @@ async function verificarELimparTags(guild) {
                 const temTag = nickname.includes(grupo.tag);
                 const temCargo = member.roles.cache.has(grupo.roleId);
 
+                // Se possui a tag no apelido mas NÃO tem o cargo oficial, remove a tag!
                 if (temTag && !temCargo) {
                     let novoNick = nickname.replace(grupo.tag, '').trim();
                     novoNick = novoNick.replace(/^[\s|\-]+|[\s|\-]+$/g, '').trim();
@@ -231,7 +227,7 @@ async function verificarELimparTags(guild) {
                             apelidoNovo: nickFinal || member.user.username,
                             grupoNome: grupo.name
                         });
-                        console.log(`🧹 Tag '${grupo.tag}' removida de ${member.user.tag} (Sem o cargo '${grupo.name}')`);
+                        console.log(`🧹 Tag '${grupo.tag}' removida de ${member.user.tag} (Não possui o cargo '${grupo.name}')`);
                     } catch (err) {
                         console.error(`❌ Não foi possível alterar o apelido de ${member.user.tag}:`, err.message);
                     }
@@ -250,27 +246,30 @@ async function verificarELimparTags(guild) {
 // ===============================
 
 client.once(Events.ClientReady, (c) => {
-    console.log(`🤖 BOT CONECTADO COMO: ${c.user.tag}`);
+    console.log(`🤖 BOT DE REGISTRO CONECTADO COMO: ${c.user.tag}`);
     console.log(`📍 Canal de Registro: ${CONFIG.CANAL_REGISTRO_ID}`);
     console.log(`⏳ Canal de Aprovação: ${CONFIG.CANAL_APROVACAO_ID}`);
     console.log(`📋 Canal Painel Ausência: ${CONFIG.CANAL_PAINEL_AUSENCIA_ID}`);
     console.log(`📜 Canal Logs Ausência: ${CONFIG.CANAL_AUSENCIA_LOGS_ID}`);
+    console.log(`🛡️ NENHUM CARGO AUTOMÁTICO SERÁ ENTREGUE NA ENTRADA.`);
 });
 
 /**
  * Evento: Entrou novo membro no servidor
- * CORREÇÃO APLICADA:
- * - NENHUM cargo é concedido automaticamente.
- * - Se o Discord Onboarding ou outro bot tentar atribuir o cargo "1515125826780135485" (Hunters Recruta) na entrada, ele é REMOVIDO ativamente.
- * - O membro recebe apenas a instrução de ir até o canal de registro pedir o set.
+ * 
+ * ✅ GARANTIA SEM CARGO AUTOMÁTICO:
+ * - O Bot NÃO entrega cargo automaticamente.
+ * - Caso o Discord Onboarding ou outro bot tente dar o cargo de Recruta (${CONFIG.CARGO_HUNTERS_RECRUTA_ID}),
+ *   este bot REMOVE o cargo imediatamente na entrada.
+ * - O membro é instruído a ir ao canal <#${CONFIG.CANAL_REGISTRO_ID}> solicitar o registro manualmente.
  */
 client.on(Events.GuildMemberAdd, async (member) => {
     try {
         console.log(`👤 Novo membro entrou no servidor: ${member.user.tag} (${member.id})`);
 
-        // PROTEÇÃO ATIVA ANTI-AUTO-ROLE:
-        // Caso o Discord Onboarding ou outro bot tenha atribuído automaticamente o cargo de Recruta (1515125826780135485),
-        // o bot remove imediatamente para forçar o registro manual.
+        // 🛡️ REMOÇÃO ATIVA ANTI-AUTO-ROLE:
+        // Caso o Discord Onboarding ou outro bot tenha atribuído o cargo de Recruta (1515125826780135485) ou Amigos,
+        // removemos o cargo imediatamente para forçar a cidadania manual via formulário.
         const rolesParaRemover = [
             CONFIG.CARGO_HUNTERS_RECRUTA_ID,
             CONFIG.CARGO_AMIGOS_ID,
@@ -288,6 +287,7 @@ client.on(Events.GuildMemberAdd, async (member) => {
             }
         }
 
+        // Envia mensagem de boas-vindas instruindo o registro manual
         if (CONFIG.CANAL_ENTRADA_SAIDA_ID) {
             const channel = member.guild.channels.cache.get(CONFIG.CANAL_ENTRADA_SAIDA_ID) || 
                             await member.guild.channels.fetch(CONFIG.CANAL_ENTRADA_SAIDA_ID).catch(() => null);
@@ -296,7 +296,7 @@ client.on(Events.GuildMemberAdd, async (member) => {
                 const embed = new EmbedBuilder()
                     .setColor(CONFIG.EMBED_COLOR)
                     .setTitle('🚪 NOVO MORADOR CHEGOU NA CIDADE!')
-                    .setDescription(`Bem-vindo(a) <@${member.id}> ao servidor!\n\n> 📝 Por favor, dirija-se ao canal <#${CONFIG.CANAL_REGISTRO_ID}> para pedir o seu **Set / Registro de Cidadania** e escolher seu grupo.`)
+                    .setDescription(`Bem-vindo(a) <@${member.id}> ao servidor!\n\n> 📝 Por favor, dirija-se ao canal <#${CONFIG.CANAL_REGISTRO_ID}> para abrir o painel e solicitar o seu **Set / Registro de Cidadania**.\n> ⚠️ *Seus cargos só serão liberados após a aprovação manual da Liderança.*`)
                     .setThumbnail(member.user.displayAvatarURL({ dynamic: true }))
                     .setFooter({ text: CONFIG.FOOTER })
                     .setTimestamp();
@@ -351,7 +351,7 @@ Mantenha os chats organizados.
 Descumprimento resultará em expulsão.
 
 ⚠️ **ATENÇÃO:** Clique no botão abaixo para liberar a aprovação do seu registro!`)
-            .setFooter({ text: 'Sistema de Gestão & Apelidos Oficial • Clã Hunters' })
+            .setFooter({ text: CONFIG.FOOTER })
             .setTimestamp();
 
         const row = new ActionRowBuilder().addComponents(
@@ -479,7 +479,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
                 });
             }
 
-            // REGISTRO DE AUSÊNCIA - INÍCIO (ABRE MODAL)
+            // REGISTRO DE AUSÊNCIA - INÍCIO
             if (interaction.customId === 'btn_iniciar_ausencia') {
                 const modal = new ModalBuilder()
                     .setCustomId('modal_ausencia')
@@ -536,78 +536,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
                 return interaction.showModal(modal);
             }
 
-            // BOTÕES DA LIDERANÇA NO LOG DE AUSÊNCIA
-            if (interaction.customId.startsWith('btn_ausencia_ciente_') || interaction.customId.startsWith('btn_ausencia_finalizar_')) {
-                const isCiente = interaction.customId.startsWith('btn_ausencia_ciente_');
-                const targetUserId = interaction.customId.replace('btn_ausencia_ciente_', '').replace('btn_ausencia_finalizar_', '');
-
-                const hasAdminRole = CONFIG.CARGOS_ADMINS_APROVADORES.some(roleId => interaction.member.roles.cache.has(roleId)) ||
-                                     interaction.member.permissions.has(PermissionsBitField.Flags.Administrator);
-
-                if (!hasAdminRole) {
-                    return interaction.reply({ content: '❌ Apenas administradores e liderança podem gerenciar avisos de ausência.', ephemeral: true });
-                }
-
-                const originalEmbed = interaction.message.embeds[0];
-                if (!originalEmbed) return interaction.reply({ content: '❌ Erro ao ler embed de ausência.', ephemeral: true });
-
-                const updatedEmbed = EmbedBuilder.from(originalEmbed);
-
-                if (isCiente) {
-                    updatedEmbed.setColor('#2ECC71');
-                    updatedEmbed.setTitle('✅ AUSÊNCIA RECONHECIDA E APROVADA');
-                    
-                    const fields = updatedEmbed.data.fields || [];
-                    const statusIndex = fields.findIndex(f => f.name.includes('Status'));
-                    if (statusIndex !== -1) {
-                        fields[statusIndex] = { name: '📌 Status', value: `🟢 **Aprovada / Liderança Ciente** por <@${interaction.user.id}>`, inline: false };
-                    } else {
-                        fields.push({ name: '📌 Status', value: `🟢 **Aprovada / Liderança Ciente** por <@${interaction.user.id}>`, inline: false });
-                    }
-                    updatedEmbed.setFields(fields);
-
-                    const disabledRow = new ActionRowBuilder().addComponents(
-                        new ButtonBuilder()
-                            .setCustomId('btn_disabled_ciente')
-                            .setLabel('Liderança Ciente')
-                            .setStyle(ButtonStyle.Success)
-                            .setDisabled(true)
-                            .setEmoji('✅'),
-                        new ButtonBuilder()
-                            .setCustomId(`btn_ausencia_finalizar_${targetUserId}`)
-                            .setLabel('Finalizar Ausência (Retornou)')
-                            .setStyle(ButtonStyle.Secondary)
-                            .setEmoji('🏁')
-                    );
-
-                    await interaction.message.edit({ embeds: [updatedEmbed], components: [disabledRow] });
-
-                    const memberObj = await interaction.guild.members.fetch(targetUserId).catch(() => null);
-                    if (memberObj) {
-                        await memberObj.send(`✅ Sua solicitação de **ausência** foi analisada e marcada como **Aprovada / Ciente** pela liderança (<@${interaction.user.id}>) no servidor **${interaction.guild.name}**.`).catch(() => {});
-                    }
-
-                    return interaction.reply({ content: '✅ Registro de ausência marcado como ciente!', ephemeral: true });
-                } else {
-                    updatedEmbed.setColor('#95A5A6');
-                    updatedEmbed.setTitle('🏁 AUSÊNCIA FINALIZADA (MEMBRO RETORNOU)');
-                    
-                    const fields = updatedEmbed.data.fields || [];
-                    const statusIndex = fields.findIndex(f => f.name.includes('Status'));
-                    if (statusIndex !== -1) {
-                        fields[statusIndex] = { name: '📌 Status', value: `🏁 **Ausência Concluída** (Finalizada por <@${interaction.user.id}>)`, inline: false };
-                    } else {
-                        fields.push({ name: '📌 Status', value: `🏁 **Ausência Concluída** (Finalizada por <@${interaction.user.id}>)`, inline: false });
-                    }
-                    updatedEmbed.setFields(fields);
-
-                    await interaction.message.edit({ embeds: [updatedEmbed], components: [] });
-
-                    return interaction.reply({ content: '🏁 Ausência marcada como finalizada com sucesso.', ephemeral: true });
-                }
-            }
-
-            // APROVAÇÃO / RECUSA DE REGISTRO DE CIDADANIA
+            // APROVAÇÃO / RECUSA DE REGISTRO PELOS ADMINS (AQUI SIM OS CARGOS SÃO ADICIONADOS APÓS AVALIAÇÃO)
             if (interaction.customId.startsWith('btn_aprovar_') || interaction.customId.startsWith('btn_recusar_')) {
                 const isApprove = interaction.customId.startsWith('btn_aprovar_');
                 
@@ -660,8 +589,10 @@ client.on(Events.InteractionCreate, async (interaction) => {
                         console.error(`⚠️ Erro ao alterar apelido de ${member.user.tag}:`, e.message);
                     }
 
+                    // 🎯 CARGO É ENTREGUE EXCLUSIVAMENTE AQUI APÓS APROVAÇÃO MANUAL DO ADMINISTRADOR!
                     try {
                         await member.roles.add(matchedGroup.roleId);
+                        console.log(`✅ Cargo '${matchedGroup.name}' (${matchedGroup.roleId}) atribuído a ${member.user.tag} após APROVAÇÃO manual.`);
                     } catch (e) {
                         console.error(`⚠️ Erro ao adicionar cargo ${matchedGroup.name} a ${member.user.tag}:`, e.message);
                     }
@@ -669,14 +600,14 @@ client.on(Events.InteractionCreate, async (interaction) => {
                     const approvedEmbed = EmbedBuilder.from(embed)
                         .setColor('#2ECC71')
                         .setTitle('✅ Registro & Apelido Aprovados')
-                        .setDescription('O membro preencheu o formulário de cidadania e foi **APROVADO**.')
+                        .setDescription('O membro preencheu o formulário de cidadania e foi **APROVADO** pela Administração.')
                         .addFields({ name: '👮 Avaliado por', value: `<@${interaction.user.id}>`, inline: false });
 
                     await interaction.message.edit({ embeds: [approvedEmbed], components: [] });
 
                     await member.send(`🎉 **Parabéns!** Seu registro no grupo **${matchedGroup.name}** foi aprovado no servidor **${interaction.guild.name}**! Seu apelido foi atualizado para \`${finalNickname}\`.`).catch(() => {});
 
-                    await interaction.reply({ content: `✅ Registro de <@${userId}> aprovado com sucesso!`, ephemeral: true });
+                    await interaction.reply({ content: `✅ Registro de <@${userId}> aprovado com sucesso! Cargo entregue.`, ephemeral: true });
                 } else {
                     const rejectedEmbed = EmbedBuilder.from(embed)
                         .setColor('#E74C3C')
@@ -781,7 +712,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
             }
 
             await interaction.reply({
-                content: `✅ **Formulário enviado com sucesso!**\nSua solicitação para o grupo **${grupoObj.name}** foi enviada para a Administração. Aguarde a liberação dos cargos!`,
+                content: `✅ **Formulário enviado com sucesso!**\nSua solicitação para o grupo **${grupoObj.name}** foi enviada para a Administração. Seus cargos serão entregues somente após a aprovação!`,
                 ephemeral: true
             });
         }
@@ -827,12 +758,10 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
             if (canalAusenciaLog) {
                 await canalAusenciaLog.send({ embeds: [embedLogAusencia], components: [rowLideranca] });
-            } else {
-                console.error(`❌ Canal de Logs de Ausência (${CONFIG.CANAL_AUSENCIA_LOGS_ID}) não foi encontrado.`);
             }
 
             await interaction.reply({
-                content: `✅ **Sua ausência foi registrada com sucesso!**\nAs informações foram enviadas para a Liderança da Família Hunters no canal <#${CONFIG.CANAL_AUSENCIA_LOGS_ID}>. Tenha um bom descanso!`,
+                content: `✅ **Sua ausência foi registrada com sucesso!**\nAs informações foram enviadas para a Liderança no canal <#${CONFIG.CANAL_AUSENCIA_LOGS_ID}>.`,
                 ephemeral: true
             });
         }
