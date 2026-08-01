@@ -29,18 +29,25 @@ const CONFIG = {
     CLIENT_ID: process.env.CLIENT_ID || "1533004581909299240",
     GUILD_ID: process.env.GUILD_ID || "1495178024759332914",
     PORT: process.env.PORT || 3000,
-    CANAL_RECRUTAMENTO_ID: process.env.CANAL_RECRUTAMENTO_ID || "1533005614173782227",
-    CANAL_FAMILIA_SOUZA_ID: process.env.CANAL_FAMILIA_SOUZA_ID || "153300561500000001",
-    CANAL_PAINEL_AUSENCIA_ID: process.env.CANAL_PAINEL_AUSENCIA_ID || "1531670381016772700",
-    CANAL_LOGS_ID: process.env.CANAL_LOGS_ID || "1533005818121949244",
-    CANAL_AUSENCIA_LOGS_ID: process.env.CANAL_AUSENCIA_LOGS_ID || "1531670383483158700",
-    CATEGORY_TICKET_ID: process.env.CATEGORY_TICKET_ID || "1533005325924565002",
+    CANAIS: {
+        RECRUTAMENTO: process.env.CANAL_RECRUTAMENTO_ID || "1533005614173782227",
+        FAMILIA_SOUZA: process.env.CANAL_FAMILIA_SOUZA_ID || "153300561500000001",
+        PAINEL_AUSENCIA: process.env.CANAL_PAINEL_AUSENCIA_ID || "1531670381016772700",
+        LOGS_GERAIS: process.env.CANAL_LOGS_ID || "1533005818121949244",
+        LOGS_AUSENCIA: process.env.CANAL_AUSENCIA_LOGS_ID || "1531670383483158700",
+        ENTRADA_SAIDA: process.env.CANAL_ENTRADA_SAIDA_ID || "1515125850419220500",
+        CATEGORY_TICKET: process.env.CATEGORY_TICKET_ID || "1533005325924565002"
+    },
     ROLES: {
         STAFF: process.env.ROLE_STAFF_ID || "1526973668788277269",
+        ADMIN_1: process.env.ROLE_ADMIN_1_ID || "1515125820836941985",
+        ADMIN_2: process.env.ROLE_ADMIN_2_ID || "1515125822795546715",
         HUNTERS_REC: process.env.ROLE_HUNTERS_REC_ID || "152697367000000000",
         RECRUTA: process.env.ROLE_RECRUTA_ID || "1526973675323134164",
         TESTE: process.env.ROLE_TESTE_ID || "1526973677172691076",
-        FAMILIA_SOUZA: process.env.ROLE_FAMILIA_SOUZA_ID || "1515125828185493675"
+        FAMILIA_SOUZA: process.env.ROLE_FAMILIA_SOUZA_ID || "1515125828185493675",
+        COMPRADOR_FIVEZ: process.env.ROLE_COMPRADOR_FIVEZ_ID || "1517662363266842725",
+        AMIGOS: process.env.ROLE_AMIGOS_ID || "1515125842328424640"
     },
     FOOTER: "Bot Unificado Hunters & Família Souza • FiveZ RP"
 };
@@ -62,6 +69,23 @@ app.listen(CONFIG.PORT, "0.0.0.0", () => console.log("Servidor HTTP ativo"));
 
 client.once(Events.ClientReady, (c) => {
     console.log("Bot Conectado como: " + c.user.tag);
+    console.log("Canais configurados:", CONFIG.CANAIS);
+    console.log("Cargos configurados:", CONFIG.ROLES);
+});
+
+// Evento de Entrada de Membro no Servidor
+client.on(Events.GuildMemberAdd, async (member) => {
+    try {
+        const channel = member.guild.channels.cache.get(CONFIG.CANAIS.ENTRADA_SAIDA);
+        if (channel) {
+            const embed = new EmbedBuilder()
+                .setColor("#22C55E")
+                .setTitle("👋 Bem-vindo ao Servidor!")
+                .setDescription(`Olá ${member}! Bem-vindo ao Discord do Clã Hunters & Família Souza!`)
+                .setFooter({ text: CONFIG.FOOTER });
+            await channel.send({ embeds: [embed] });
+        }
+    } catch (e) { console.error("Erro no GuildMemberAdd:", e); }
 });
 
 client.on(Events.MessageCreate, async (message) => {
@@ -137,12 +161,39 @@ client.on(Events.InteractionCreate, async (interaction) => {
         }
         if (interaction.isModalSubmit()) {
             if (interaction.customId === "modal_hunters_form") {
+                const logChannel = interaction.guild?.channels.cache.get(CONFIG.CANAIS.LOGS_GERAIS);
+                if (logChannel) {
+                    const embed = new EmbedBuilder()
+                        .setColor("#9333EA")
+                        .setTitle("🏹 Novo Form Recrutamento Hunters")
+                        .setDescription(`Candidato ${interaction.user} preencheu o formulário. Cargo temporário <@&${CONFIG.ROLES.HUNTERS_REC}> atribuído.`)
+                        .setFooter({ text: CONFIG.FOOTER });
+                    await logChannel.send({ embeds: [embed] });
+                }
                 return interaction.reply({ content: "✅ Formulário enviado e registrado! Cargo temporário |Hunters-Rec| concedido.", ephemeral: true });
             }
             if (interaction.customId === "modal_souza_form") {
+                const logChannel = interaction.guild?.channels.cache.get(CONFIG.CANAIS.LOGS_GERAIS);
+                if (logChannel) {
+                    const embed = new EmbedBuilder()
+                        .setColor("#D97706")
+                        .setTitle("👑 Solicitação Família Souza")
+                        .setDescription(`Membro ${interaction.user} solicitou adesão à Família Souza. Notificando Staff <@&${CONFIG.ROLES.STAFF}>.`)
+                        .setFooter({ text: CONFIG.FOOTER });
+                    await logChannel.send({ embeds: [embed] });
+                }
                 return interaction.reply({ content: "👑 Solicitação Família Souza enviada à Liderança!", ephemeral: true });
             }
             if (interaction.customId === "modal_ausencia_form") {
+                const ausLogChannel = interaction.guild?.channels.cache.get(CONFIG.CANAIS.LOGS_AUSENCIA);
+                if (ausLogChannel) {
+                    const embed = new EmbedBuilder()
+                        .setColor("#EA580C")
+                        .setTitle("📋 Registro de Ausência Confirmado")
+                        .setDescription(`Membro ${interaction.user} registrou ausência no sistema. Proteção de inatividade ativada.`)
+                        .setFooter({ text: CONFIG.FOOTER });
+                    await ausLogChannel.send({ embeds: [embed] });
+                }
                 return interaction.reply({ content: "📋 Ausência registrada com sucesso! Proteção de inatividade ativada.", ephemeral: true });
             }
         }
