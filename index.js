@@ -22,32 +22,32 @@ const {
 const express = require("express");
 const fs = require("fs");
 const path = require("path");
-require("dotenv").config();
+try { require("dotenv").config(); } catch (e) {}
 
 const CONFIG = {
     TOKEN: process.env.DISCORD_TOKEN || process.env.TOKEN || "SEU_TOKEN_AQUI",
-    CLIENT_ID: process.env.CLIENT_ID || "1533004581909299240",
-    GUILD_ID: process.env.GUILD_ID || "1495178024759332914",
-    PORT: process.env.PORT || 3000,
+    CLIENT_ID: "1533004581909299240",
+    GUILD_ID: "1495178024759332914",
+    PORT: 3000,
     CANAIS: {
-        RECRUTAMENTO: process.env.CANAL_RECRUTAMENTO_ID || "1533005614173782227",
-        FAMILIA_SOUZA: process.env.CANAL_FAMILIA_SOUZA_ID || "153300561500000001",
-        PAINEL_AUSENCIA: process.env.CANAL_PAINEL_AUSENCIA_ID || "1531670381016772700",
-        LOGS_GERAIS: process.env.CANAL_LOGS_ID || "1533005818121949244",
-        LOGS_AUSENCIA: process.env.CANAL_AUSENCIA_LOGS_ID || "1531670383483158700",
-        ENTRADA_SAIDA: process.env.CANAL_ENTRADA_SAIDA_ID || "1515125850419220500",
-        CATEGORY_TICKET: process.env.CATEGORY_TICKET_ID || "1533005325924565002"
+        RECRUTAMENTO: "1533005614173782227",
+        FAMILIA_SOUZA: "153300561500000001",
+        PAINEL_AUSENCIA: "1531670381016772700",
+        LOGS_GERAIS: "1533005818121949244",
+        LOGS_AUSENCIA: "1531670383483158700",
+        ENTRADA_SAIDA: "1515125850419220500",
+        CATEGORY_TICKET: "1533005325924565002"
     },
     ROLES: {
-        STAFF: process.env.ROLE_STAFF_ID || "1526973668788277269",
-        ADMIN_1: process.env.ROLE_ADMIN_1_ID || "1515125820836941985",
-        ADMIN_2: process.env.ROLE_ADMIN_2_ID || "1515125822795546715",
-        HUNTERS_REC: process.env.ROLE_HUNTERS_REC_ID || "152697367000000000",
-        RECRUTA: process.env.ROLE_RECRUTA_ID || "1526973675323134164",
-        TESTE: process.env.ROLE_TESTE_ID || "1526973677172691076",
-        FAMILIA_SOUZA: process.env.ROLE_FAMILIA_SOUZA_ID || "1515125828185493675",
-        COMPRADOR_FIVEZ: process.env.ROLE_COMPRADOR_FIVEZ_ID || "1517662363266842725",
-        AMIGOS: process.env.ROLE_AMIGOS_ID || "1515125842328424640"
+        STAFF: "1526973668788277269",
+        ADMIN_1: "1515125820836941985",
+        ADMIN_2: "1515125822795546715",
+        HUNTERS_REC: "152697367000000000",
+        RECRUTA: "1526973675323134164",
+        TESTE: "1526973677172691076",
+        FAMILIA_SOUZA: "1515125828185493675",
+        COMPRADOR_FIVEZ: "1517662363266842725",
+        AMIGOS: "1515125842328424640"
     },
     FOOTER: "Bot Unificado Hunters & Família Souza • FiveZ RP"
 };
@@ -242,18 +242,18 @@ client.on(Events.InteractionCreate, async (interaction) => {
                 const id = interaction.fields.getTextInputValue("input_comp_id");
                 if (CONFIG.ROLES.COMPRADOR_FIVEZ && interaction.member) {
                     await interaction.member.roles.add(CONFIG.ROLES.COMPRADOR_FIVEZ).catch(() => {});
-                    await interaction.member.setNickname(`|Comprador| ${nome} | ${id}`).catch(() => {});
+                    await interaction.member.setNickname("|Comprador| " + nome + " | " + id).catch(() => {});
                 }
-                return interaction.reply({ content: `🛒 Registro de Comprador concluído! Cargo |Comprador| concedido e apelido alterado para: `|Comprador| ${nome} | ${id}``, ephemeral: true });
+                return interaction.reply({ content: "🛒 Registro de Comprador concluído! Cargo |Comprador| concedido e apelido alterado para: |Comprador| " + nome + " | " + id, ephemeral: true });
             }
             if (interaction.customId === "modal_amigos_form") {
                 const nome = interaction.fields.getTextInputValue("input_ami_nome");
                 const id = interaction.fields.getTextInputValue("input_ami_id");
                 if (CONFIG.ROLES.AMIGOS && interaction.member) {
                     await interaction.member.roles.add(CONFIG.ROLES.AMIGOS).catch(() => {});
-                    await interaction.member.setNickname(`|Amigos| ${nome} | ${id}`).catch(() => {});
+                    await interaction.member.setNickname("|Amigos| " + nome + " | " + id).catch(() => {});
                 }
-                return interaction.reply({ content: `🤝 Registro concluído! Cargo |Amigos| concedido e apelido alterado para: `|Amigos| ${nome} | ${id}``, ephemeral: true });
+                return interaction.reply({ content: "🤝 Registro concluído! Cargo |Amigos| concedido e apelido alterado para: |Amigos| " + nome + " | " + id, ephemeral: true });
             }
             if (interaction.customId === "modal_souza_form") {
                 const logChannel = interaction.guild?.channels.cache.get(CONFIG.CANAIS.LOGS_GERAIS);
