@@ -96,10 +96,21 @@ client.on(Events.MessageCreate, async (message) => {
     if (cmd === "!painel") {
         const embed = new EmbedBuilder()
             .setColor("#9333EA")
-            .setTitle("🧟 RECRUTAMENTO HARDCORE — CLÃ HUNTERS")
-            .setDescription("Clique no botão abaixo para ingressar nos Hunters e receber o cargo temporário |Hunters-Rec|.");
+            .setAuthor({ name: "👑 FAMÍLIA SOUZA INFINITA 👑" })
+            .setTitle("🏡 Sistema de Registro — Cidadania & Grupos")
+            .setDescription(
+                "📢 **AVISO IMPORTANTE PARA TODOS (@everyone):**\n\n" +
+                "⚠️ **PRAZO LIMITE DE REGISTRO:** Todo membro que entrar no servidor tem um prazo máximo de **3 dias** para realizar o registro de cidadania.\n\n" +
+                "🚫 Se você passar de **3 dias** no servidor sem realizar o seu registro, você será **kickado automaticamente** pelo sistema!\n\n" +
+                "Para desbloquear todos os canais do servidor e registrar sua cidadania, selecione seu grupo abaixo.\n\n" +
+                "🎁 **Benefícios ao registrar:**\n" +
+                "✅ **Cargo do seu Grupo escolhido**\n" +
+                "🏷️ **Apelido Atualizado:** Com a tag do grupo, seu Nome e ID\n" +
+                "🔓 **Liberação imediata** dos canais do servidor\n\n" +
+                "👇 *Clique no botão abaixo, escolha seu grupo e preencha o formulário!*"
+            );
         const row = new ActionRowBuilder().addComponents(
-            new ButtonBuilder().setCustomId("btn_iniciar_hunters").setLabel("Entrar para os Hunters").setStyle(ButtonStyle.Primary).setEmoji("🏹")
+            new ButtonBuilder().setCustomId("btn_iniciar_registro").setLabel("Realizar Registro").setStyle(ButtonStyle.Success).setEmoji("🏡")
         );
         await message.channel.send({ embeds: [embed], components: [row] });
     }
@@ -128,6 +139,20 @@ client.on(Events.MessageCreate, async (message) => {
 client.on(Events.InteractionCreate, async (interaction) => {
     try {
         if (interaction.isButton()) {
+            if (interaction.customId === "btn_iniciar_registro") {
+                const { StringSelectMenuBuilder, StringSelectMenuOptionBuilder } = require("discord.js");
+                const select = new StringSelectMenuBuilder()
+                    .setCustomId("select_grupo_registro")
+                    .setPlaceholder("Selecione seu Grupo / Função no Servidor...")
+                    .addOptions(
+                        new StringSelectMenuOptionBuilder().setLabel("Hunters FiveZ (Recruta)").setValue("grupo_hunters").setDescription("Inicia o formulário e teste tático do Clã Hunters").setEmoji("🎯"),
+                        new StringSelectMenuOptionBuilder().setLabel("Comprador FiveZ").setValue("grupo_comprador").setDescription("Recebe cargo |Comprador| e libera canais").setEmoji("🛒"),
+                        new StringSelectMenuOptionBuilder().setLabel("Família Souza").setValue("grupo_souza").setDescription("Solicita adesão oficial à Família Souza").setEmoji("👑"),
+                        new StringSelectMenuOptionBuilder().setLabel("Amigos & Visitantes").setValue("grupo_amigos").setDescription("Recebe cargo |Amigos| e libera os canais").setEmoji("🤝")
+                    );
+                const row = new ActionRowBuilder().addComponents(select);
+                return interaction.reply({ content: "👇 Escolha abaixo o seu grupo para iniciar o registro:", components: [row], ephemeral: true });
+            }
             if (interaction.customId === "btn_iniciar_hunters") {
                 if (CONFIG.ROLES.HUNTERS_REC && interaction.member) {
                     await interaction.member.roles.add(CONFIG.ROLES.HUNTERS_REC).catch(() => {});
@@ -159,6 +184,46 @@ client.on(Events.InteractionCreate, async (interaction) => {
                 return interaction.showModal(modal);
             }
         }
+        if (interaction.isStringSelectMenu() && interaction.customId === "select_grupo_registro") {
+            const selected = interaction.values[0];
+            if (selected === "grupo_hunters") {
+                if (CONFIG.ROLES.HUNTERS_REC && interaction.member) {
+                    await interaction.member.roles.add(CONFIG.ROLES.HUNTERS_REC).catch(() => {});
+                }
+                const modal = new ModalBuilder().setCustomId("modal_hunters_form").setTitle("Formulário Hunters");
+                modal.addComponents(
+                    new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("input_nome").setLabel("Nome RP").setStyle(TextInputStyle.Short).setRequired(true)),
+                    new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("input_id").setLabel("ID Jogo").setStyle(TextInputStyle.Short).setRequired(true)),
+                    new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("input_motivacao").setLabel("Motivação").setStyle(TextInputStyle.Paragraph).setRequired(true))
+                );
+                return interaction.showModal(modal);
+            }
+            if (selected === "grupo_comprador") {
+                const modal = new ModalBuilder().setCustomId("modal_comprador_form").setTitle("Registro Comprador FiveZ");
+                modal.addComponents(
+                    new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("input_comp_nome").setLabel("Nome RP").setStyle(TextInputStyle.Short).setRequired(true)),
+                    new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("input_comp_id").setLabel("ID Jogo").setStyle(TextInputStyle.Short).setRequired(true))
+                );
+                return interaction.showModal(modal);
+            }
+            if (selected === "grupo_souza") {
+                const modal = new ModalBuilder().setCustomId("modal_souza_form").setTitle("Adesão Família Souza");
+                modal.addComponents(
+                    new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("input_souza_nome").setLabel("Nome RP").setStyle(TextInputStyle.Short).setRequired(true)),
+                    new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("input_souza_id").setLabel("ID Jogo").setStyle(TextInputStyle.Short).setRequired(true)),
+                    new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("input_souza_convidado").setLabel("Quem te Convidou?").setStyle(TextInputStyle.Short).setRequired(true))
+                );
+                return interaction.showModal(modal);
+            }
+            if (selected === "grupo_amigos") {
+                const modal = new ModalBuilder().setCustomId("modal_amigos_form").setTitle("Registro Amigos & Visitantes");
+                modal.addComponents(
+                    new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("input_ami_nome").setLabel("Nome RP").setStyle(TextInputStyle.Short).setRequired(true)),
+                    new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("input_ami_id").setLabel("ID Jogo").setStyle(TextInputStyle.Short).setRequired(true))
+                );
+                return interaction.showModal(modal);
+            }
+        }
         if (interaction.isModalSubmit()) {
             if (interaction.customId === "modal_hunters_form") {
                 const logChannel = interaction.guild?.channels.cache.get(CONFIG.CANAIS.LOGS_GERAIS);
@@ -171,6 +236,24 @@ client.on(Events.InteractionCreate, async (interaction) => {
                     await logChannel.send({ embeds: [embed] });
                 }
                 return interaction.reply({ content: "✅ Formulário enviado e registrado! Cargo temporário |Hunters-Rec| concedido.", ephemeral: true });
+            }
+            if (interaction.customId === "modal_comprador_form") {
+                const nome = interaction.fields.getTextInputValue("input_comp_nome");
+                const id = interaction.fields.getTextInputValue("input_comp_id");
+                if (CONFIG.ROLES.COMPRADOR_FIVEZ && interaction.member) {
+                    await interaction.member.roles.add(CONFIG.ROLES.COMPRADOR_FIVEZ).catch(() => {});
+                    await interaction.member.setNickname(`|Comprador| ${nome} | ${id}`).catch(() => {});
+                }
+                return interaction.reply({ content: `🛒 Registro de Comprador concluído! Cargo |Comprador| concedido e apelido alterado para: `|Comprador| ${nome} | ${id}``, ephemeral: true });
+            }
+            if (interaction.customId === "modal_amigos_form") {
+                const nome = interaction.fields.getTextInputValue("input_ami_nome");
+                const id = interaction.fields.getTextInputValue("input_ami_id");
+                if (CONFIG.ROLES.AMIGOS && interaction.member) {
+                    await interaction.member.roles.add(CONFIG.ROLES.AMIGOS).catch(() => {});
+                    await interaction.member.setNickname(`|Amigos| ${nome} | ${id}`).catch(() => {});
+                }
+                return interaction.reply({ content: `🤝 Registro concluído! Cargo |Amigos| concedido e apelido alterado para: `|Amigos| ${nome} | ${id}``, ephemeral: true });
             }
             if (interaction.customId === "modal_souza_form") {
                 const logChannel = interaction.guild?.channels.cache.get(CONFIG.CANAIS.LOGS_GERAIS);
