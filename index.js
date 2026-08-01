@@ -4,13 +4,10 @@
  * CLÃ HUNTERS & FAMÍLIA SOUZA INFINITA (DISCORD.JS V14 - ES MODULES)
  * ============================================================================
  * 
- * 🚀 FUNCIONA COM "type": "module" NO PACKAGE.JSON
+ * 🚀 FUNCIONA 100% DIRETO COM: node index.js (Sem necessidade de "type": "module")
  * 
  * Instalação dos pacotes:
  * npm install discord.js express
- * 
- * Modo de uso:
- * node index.js
  */
 
 import express from 'express';
@@ -165,21 +162,8 @@ function formatarApelidoSeguro(tag, nome, id) {
     return nick.substring(0, 32);
 }
 
-/**
- * Função para criar o Embed de Regras com o Botão de Confirmação para envio no PV
- */
 async function enviarRegrasPVComConfirmacao(user) {
-    const regrasTexto = `📌 **1. RESPEITO À HIERARQUIA & LIDERANÇA:**
-Respeite todos os membros e as decisões da administração e liderança.
-
-📌 **2. INATIVIDADE MÁXIMA DE 3 DIAS:**
-Ficar 3 dias sem logar no servidor sem registrar no painel de ausência resultará em desvinculação automática e remoção do Set.
-
-📌 **3. NOME E TAG OBRIGATÓRIOS:**
-Mantenha a tag oficial do seu grupo visível no seu apelido no Discord e no jogo.
-
-📌 **4. PROIBIDO APOSTAS E COMPORTAMENTO TÓXICO:**
-Evite brigas, discussões ou ofensas nos canais de texto ou voz do servidor.`;
+    const regrasTexto = `📌 **1. RESPEITO À HIERARQUIA & LIDERANÇA:**\nRespeite todos os membros e as decisões da administração e liderança.\n\n📌 **2. INATIVIDADE MÁXIMA DE 3 DIAS:**\nFicar 3 dias sem logar no servidor sem registrar no painel de ausência resultará em desvinculação automática e remoção do Set.\n\n📌 **3. NOME E TAG OBRIGATÓRIOS:**\nMantenha a tag oficial do seu grupo visível no seu apelido no Discord e no jogo.\n\n📌 **4. PROIBIDO APOSTAS E COMPORTAMENTO TÓXICO:**\nEvite brigas, discussões ou ofensas nos canais de texto ou voz do servidor.`;
 
     const embedPV = new EmbedBuilder()
         .setColor('#2ECC71')
@@ -212,9 +196,6 @@ client.once(Events.ClientReady, (c) => {
     console.log(`🤖 BOT FAMÍLIA SOUZA & HUNTERS CONECTADO COMO: ${c.user.tag}`);
 });
 
-/**
- * Entrada de novo membro
- */
 client.on(Events.GuildMemberAdd, async (member) => {
     try {
         console.log(`👤 Novo membro entrou: ${member.user.tag}`);
@@ -245,8 +226,7 @@ client.on(Events.MessageCreate, async (message) => {
 
     const command = message.content.toLowerCase().trim();
 
-    // !painel (Posta o Painel de Registro no canal)
-    if (command === '!painel' || command === '!postarpainel') {
+    if (command === '!painel' || command === '!postarpainel' || command === '!setup_registro' || command === '!setuppainel') {
         if (!message.member?.permissions.has(PermissionsBitField.Flags.Administrator)) {
             return message.reply('❌ Apenas administradores podem executar este comando.');
         }
@@ -287,8 +267,7 @@ Para desbloquear todos os canais do servidor e registrar sua cidadania, selecion
         return message.reply('✅ Painel Oficial de Registro postado com sucesso!');
     }
 
-    // !painelausencia
-    if (command === '!painelausencia' || command === '!postarpainelausencia') {
+    if (command === '!painelausencia' || command === '!painel_ausencia' || command === '!postarausencia') {
         if (!message.member?.permissions.has(PermissionsBitField.Flags.Administrator)) {
             return message.reply('❌ Apenas administradores podem executar este comando.');
         }
@@ -326,14 +305,11 @@ Caso vá ficar ausente por **mais de 2 dias**, é obrigatório preencher o formu
     }
 });
 
-// ===============================
 // HANDLER DE INTERAÇÕES (BOTÕES / MODAIS / MENUS)
-// ===============================
 client.on(Events.InteractionCreate, async (interaction) => {
     try {
         if (interaction.isButton()) {
 
-            // 1. CONFIRMAÇÃO DE LEITURA DAS REGRAS NO PV
             if (interaction.customId === 'btn_confirmar_regras_pv') {
                 confirmacoesRegras.set(interaction.user.id, {
                     confirmado: true,
@@ -357,12 +333,11 @@ client.on(Events.InteractionCreate, async (interaction) => {
                 } catch (e) {}
 
                 return interaction.reply({
-                    content: '✅ **CONFIRMAÇÃO REGISTRADA COM SUCESSO!**\nObrigado por ler e aceitar as regras oficiais. A Staff foi notificada no canal de aprovação!',
+                    content: '✅ **CONFIRMAÇÃO REGISTRADA COM SUCESSO!**\nObrigado por ler e aceitar as regras oficiais. A Staff foi notificada!',
                     ephemeral: false
                 });
             }
 
-            // 2. BOTÃO "REALIZAR REGISTRO" NO CANAL (#pedir-set)
             if (interaction.customId === 'btn_iniciar_registro') {
                 const enviouPV = await enviarRegrasPVComConfirmacao(interaction.user);
 
@@ -391,7 +366,6 @@ client.on(Events.InteractionCreate, async (interaction) => {
                 });
             }
 
-            // 3. APROVAÇÃO OU RECUSA DO SET PELA STAFF
             if (interaction.customId.startsWith('btn_aprovar_') || interaction.customId.startsWith('btn_recusar_')) {
                 const isApprove = interaction.customId.startsWith('btn_aprovar_');
                 
@@ -434,18 +408,10 @@ client.on(Events.InteractionCreate, async (interaction) => {
                     await interaction.message.edit({ embeds: [approvedEmbed], components: [] });
                     await member.send(`🎉 **Parabéns!** Seu Set para **${matchedGroup.name}** foi APROVADO! Seu apelido foi ajustado para \`${nickFinal}\`.`).catch(() => {});
 
-                    // ENVIA O LOG OFICIAL PARA O CANAL DE LOGS (#logs-aprovados)
                     try {
                         let canalLogs = null;
                         if (CONFIG.CANAL_LOGS_ID) {
                             canalLogs = await client.channels.fetch(CONFIG.CANAL_LOGS_ID).catch(() => null);
-                        }
-                        if (!canalLogs && interaction.guild) {
-                            canalLogs = interaction.guild.channels.cache.get(CONFIG.CANAL_LOGS_ID) ||
-                                interaction.guild.channels.cache.find(c => 
-                                    c.name.toLowerCase().includes('log') || 
-                                    c.name.toLowerCase().includes('aprovado')
-                                );
                         }
                         if (canalLogs && typeof canalLogs.send === 'function') {
                             const embedLogAprovado = new EmbedBuilder()
@@ -467,7 +433,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
                         console.error('Erro ao enviar log de aprovação:', eLog);
                     }
 
-                    return interaction.reply({ content: `✅ Set de <@${userId}> APROVADO com sucesso! Log registrado no canal de logs.`, ephemeral: true });
+                    return interaction.reply({ content: `✅ Set de <@${userId}> APROVADO com sucesso! Log registrado.`, ephemeral: true });
                 } else {
                     const rejectedEmbed = EmbedBuilder.from(embed)
                         .setColor('#E74C3C')
@@ -481,7 +447,6 @@ client.on(Events.InteractionCreate, async (interaction) => {
                 }
             }
 
-            // 4. BOTÃO REGISTRAR AUSÊNCIA
             if (interaction.customId === 'btn_iniciar_ausencia') {
                 const modal = new ModalBuilder()
                     .setCustomId('modal_ausencia')
@@ -518,7 +483,6 @@ client.on(Events.InteractionCreate, async (interaction) => {
             }
         }
 
-        // SELEÇÃO DO MENU DE GRUPOS
         if (interaction.isStringSelectMenu() && interaction.customId === 'select_grupo_registro') {
             const roleId = interaction.values[0];
             const grupoObj = CONFIG.GRUPOS.find(g => g.roleId === roleId) || CONFIG.GRUPOS[0];
@@ -531,7 +495,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
                 new ActionRowBuilder().addComponents(
                     new TextInputBuilder()
                         .setCustomId('input_nome_jogo')
-                        .setLabel('Nome / Apelido no Jogo')
+                        .setLabel('1. Nome / Apelido no Jogo')
                         .setPlaceholder('Ex: Bruno Hunters')
                         .setStyle(TextInputStyle.Short)
                         .setRequired(true)
@@ -539,7 +503,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
                 new ActionRowBuilder().addComponents(
                     new TextInputBuilder()
                         .setCustomId('input_id_jogo')
-                        .setLabel('Seu ID Numérico')
+                        .setLabel('2. Seu ID Numérico')
                         .setPlaceholder('Ex: 4502')
                         .setStyle(TextInputStyle.Short)
                         .setRequired(true)
@@ -547,8 +511,24 @@ client.on(Events.InteractionCreate, async (interaction) => {
                 new ActionRowBuilder().addComponents(
                     new TextInputBuilder()
                         .setCustomId('input_contratante')
-                        .setLabel('Quem te recrutou / convidou?')
+                        .setLabel('3. Quem te recrutou / convidou?')
                         .setPlaceholder('Ex: Bruno Liderança')
+                        .setStyle(TextInputStyle.Short)
+                        .setRequired(true)
+                ),
+                new ActionRowBuilder().addComponents(
+                    new TextInputBuilder()
+                        .setCustomId('input_q_rdm_vdm')
+                        .setLabel('4. O que é RDM / VDM / Combat Log?')
+                        .setPlaceholder('Explique com suas palavras as regras do FiveZ...')
+                        .setStyle(TextInputStyle.Paragraph)
+                        .setRequired(true)
+                ),
+                new ActionRowBuilder().addComponents(
+                    new TextInputBuilder()
+                        .setCustomId('input_q_inatividade')
+                        .setLabel('5. Qual o limite de dias sem entrar no jogo?')
+                        .setPlaceholder('Ex: Máximo 3 dias sem avisar no painel de ausência')
                         .setStyle(TextInputStyle.Short)
                         .setRequired(true)
                 )
@@ -557,7 +537,6 @@ client.on(Events.InteractionCreate, async (interaction) => {
             return interaction.showModal(modal);
         }
 
-        // MODAL SUBMIT DO REGISTRO DE SET
         if (interaction.isModalSubmit() && interaction.customId.startsWith('modal_registro_')) {
             const roleId = interaction.customId.replace('modal_registro_', '');
             const grupoObj = CONFIG.GRUPOS.find(g => g.roleId === roleId) || CONFIG.GRUPOS[0];
@@ -565,10 +544,11 @@ client.on(Events.InteractionCreate, async (interaction) => {
             const nomeJogo = interaction.fields.getTextInputValue('input_nome_jogo').trim();
             const idJogo = interaction.fields.getTextInputValue('input_id_jogo').trim();
             const contratante = interaction.fields.getTextInputValue('input_contratante').trim();
+            const qRdmVdm = interaction.fields.getTextInputValue('input_q_rdm_vdm')?.trim() || 'Não informado';
+            const qInatividade = interaction.fields.getTextInputValue('input_q_inatividade')?.trim() || 'Não informado';
 
             const nickFinal = formatarApelidoSeguro(grupoObj.tag, nomeJogo, idJogo);
 
-            // Verifica se o jogador clicou no botão de confirmação das regras no PV
             const confirmacaoPv = confirmacoesRegras.get(interaction.user.id);
             const statusRegrasPv = confirmacaoPv?.confirmado
                 ? '✅ **SIM — REGRAS LIDAS E CONFIRMADAS PELO JOGADOR NO PV!**'
@@ -576,7 +556,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
             const embedAprovacao = new EmbedBuilder()
                 .setColor('#F1C40F')
-                .setTitle('⏳ NOVO PEDIDO DE SET - AGUARDANDO STAFF')
+                .setTitle('⏳ NOVO PEDIDO DE SET & QUESTIONÁRIO - AGUARDANDO STAFF')
                 .addFields(
                     { name: '👤 Usuário Discord', value: `<@${interaction.user.id}> (${interaction.user.tag})`, inline: true },
                     { name: '🎯 Grupo Solicitado', value: `**${grupoObj.name}**`, inline: true },
@@ -584,6 +564,8 @@ client.on(Events.InteractionCreate, async (interaction) => {
                     { name: '📝 Nome no Jogo', value: `**${nomeJogo}**`, inline: true },
                     { name: '🔢 ID no Jogo', value: `**${idJogo}**`, inline: true },
                     { name: '🤝 Recrutado Por', value: `**${contratante}**`, inline: false },
+                    { name: '🧠 Resposta Rules (RDM / VDM / Combat Log)', value: `>>> ${qRdmVdm}`, inline: false },
+                    { name: '⏳ Resposta Regra Inatividade (3 Dias)', value: `>>> ${qInatividade}`, inline: false },
                     { name: '🏷️ Apelido a ser Gerado', value: `\`${nickFinal}\``, inline: false }
                 )
                 .setFooter({ text: CONFIG.FOOTER })
@@ -607,26 +589,14 @@ client.on(Events.InteractionCreate, async (interaction) => {
                 if (CONFIG.CANAL_APROVACAO_ID) {
                     canalAprov = await client.channels.fetch(CONFIG.CANAL_APROVACAO_ID).catch(() => null);
                 }
-                if (!canalAprov && interaction.guild) {
-                    canalAprov = interaction.guild.channels.cache.get(CONFIG.CANAL_APROVACAO_ID) ||
-                        interaction.guild.channels.cache.find(c => 
-                            c.name.toLowerCase().includes('aprova') || 
-                            c.name.toLowerCase().includes('set') || 
-                            c.name.toLowerCase().includes('staff')
-                        );
-                }
-            } catch (errCh) {
-                console.error('⚠️ Erro ao buscar canal de aprovação:', errCh);
-            }
+            } catch (errCh) {}
 
             let enviouCanal = false;
             if (canalAprov && typeof canalAprov.send === 'function') {
                 try {
                     await canalAprov.send({ embeds: [embedAprovacao], components: [row] });
                     enviouCanal = true;
-                } catch (errSend) {
-                    console.error(`❌ Erro ao enviar mensagem para o canal de aprovação:`, errSend);
-                }
+                } catch (errSend) {}
             }
 
             const avisoEnvio = enviouCanal
@@ -639,7 +609,6 @@ client.on(Events.InteractionCreate, async (interaction) => {
             });
         }
 
-        // MODAL SUBMIT DA AUSÊNCIA
         if (interaction.isModalSubmit() && interaction.customId === 'modal_ausencia') {
             const nomeId = interaction.fields.getTextInputValue('input_ausencia_nome_id');
             const datas = interaction.fields.getTextInputValue('input_ausencia_datas');
