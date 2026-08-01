@@ -1,17 +1,20 @@
 /**
  * ============================================================================
  * BOT OFICIAL DE REGISTRO DE SET, REGRAS NO PV, LOGS DE APROVADOS & INATIVIDADE
- * CLÃ HUNTERS & FAMÍLIA SOUZA INFINITA (DISCORD.JS V14 - COMMONJS)
+ * CLÃ HUNTERS & FAMÍLIA SOUZA INFINITA (DISCORD.JS V14 - ES MODULES)
  * ============================================================================
  * 
- * 🚀 FUNCIONA 100% DIRETO COM: node index.js
+ * 🚀 FUNCIONA COM "type": "module" NO PACKAGE.JSON
  * 
- * Instalação prévia das dependências:
+ * Instalação dos pacotes:
  * npm install discord.js express
+ * 
+ * Modo de uso:
+ * node index.js
  */
 
-const express = require('express');
-const {
+import express from 'express';
+import {
     Client,
     GatewayIntentBits,
     Partials,
@@ -25,7 +28,7 @@ const {
     TextInputStyle,
     Events,
     PermissionsBitField
-} = require('discord.js');
+} from 'discord.js';
 
 // ===============================
 // CONFIGURAÇÃO DE AMBIENTE & TOKEN
@@ -34,10 +37,10 @@ const TOKEN = process.env.DISCORD_TOKEN || process.env.TOKEN || "SEU_DISCORD_BOT
 const PORT = process.env.PORT || 3000;
 
 if (!TOKEN || TOKEN.includes("SEU_DISCORD_BOT_TOKEN")) {
-    console.warn("⚠️ AVISO: Substitua 'SEU_DISCORD_BOT_TOKEN' pelo Token real do seu bot!");
+    console.warn("⚠️ AVISO: Insira o Token do seu Bot do Discord no arquivo index.js!");
 }
 
-// Map em memória para registrar a confirmação das regras no PV
+// Map em memória para registrar se o jogador clicou no botão de confirmação das regras no PV
 const confirmacoesRegras = new Map();
 
 // ===============================
@@ -47,7 +50,7 @@ const CONFIG = {
     CLIENT_ID: process.env.CLIENT_ID || "SEU_CLIENT_ID",
     GUILD_ID: process.env.GUILD_ID || "SEU_GUILD_ID",
     
-    // IDs dos Canais
+    // IDs dos Canais do Servidor
     CANAL_REGISTRO_ID: process.env.CANAL_REGISTRO_ID || "1515125852264603700",
     CANAL_APROVACAO_ID: process.env.CANAL_APROVACAO_ID || "1515448473246498866",
     CANAL_LOGS_ID: process.env.CANAL_LOGS_ID || "1515448473246498866", // Canal de Logs de Sets Aprovados
@@ -162,8 +165,21 @@ function formatarApelidoSeguro(tag, nome, id) {
     return nick.substring(0, 32);
 }
 
+/**
+ * Função para criar o Embed de Regras com o Botão de Confirmação para envio no PV
+ */
 async function enviarRegrasPVComConfirmacao(user) {
-    const regrasTexto = `📌 **1. RESPEITO À HIERARQUIA & LIDERANÇA:**\nRespeite todos os membros e as decisões da administração e liderança.\n\n📌 **2. INATIVIDADE MÁXIMA DE 3 DIAS:**\nFicar 3 dias sem logar no servidor sem registrar no painel de ausência resultará em desvinculação automática e remoção do Set.\n\n📌 **3. NOME E TAG OBRIGATÓRIOS:**\nMantenha a tag oficial do seu grupo visível no seu apelido no Discord e no jogo.\n\n📌 **4. PROIBIDO APOSTAS E COMPORTAMENTO TÓXICO:**\nEvite brigas, discussões ou ofensas nos canais de texto ou voz do servidor.`;
+    const regrasTexto = `📌 **1. RESPEITO À HIERARQUIA & LIDERANÇA:**
+Respeite todos os membros e as decisões da administração e liderança.
+
+📌 **2. INATIVIDADE MÁXIMA DE 3 DIAS:**
+Ficar 3 dias sem logar no servidor sem registrar no painel de ausência resultará em desvinculação automática e remoção do Set.
+
+📌 **3. NOME E TAG OBRIGATÓRIOS:**
+Mantenha a tag oficial do seu grupo visível no seu apelido no Discord e no jogo.
+
+📌 **4. PROIBIDO APOSTAS E COMPORTAMENTO TÓXICO:**
+Evite brigas, discussões ou ofensas nos canais de texto ou voz do servidor.`;
 
     const embedPV = new EmbedBuilder()
         .setColor('#2ECC71')
@@ -196,6 +212,9 @@ client.once(Events.ClientReady, (c) => {
     console.log(`🤖 BOT FAMÍLIA SOUZA & HUNTERS CONECTADO COMO: ${c.user.tag}`);
 });
 
+/**
+ * Entrada de novo membro
+ */
 client.on(Events.GuildMemberAdd, async (member) => {
     try {
         console.log(`👤 Novo membro entrou: ${member.user.tag}`);
@@ -220,13 +239,14 @@ client.on(Events.GuildMemberAdd, async (member) => {
     }
 });
 
-// Comandos de Texto para Administradores (!painel, !painelausencia, !setup_registro)
+// Comandos de Texto para Administradores (!painel, !painelausencia)
 client.on(Events.MessageCreate, async (message) => {
     if (message.author.bot || !message.guild) return;
 
     const command = message.content.toLowerCase().trim();
 
-    if (command === '!painel' || command === '!postarpainel' || command === '!setup_registro' || command === '!setuppainel') {
+    // !painel (Posta o Painel de Registro no canal)
+    if (command === '!painel' || command === '!postarpainel') {
         if (!message.member?.permissions.has(PermissionsBitField.Flags.Administrator)) {
             return message.reply('❌ Apenas administradores podem executar este comando.');
         }
@@ -267,7 +287,8 @@ Para desbloquear todos os canais do servidor e registrar sua cidadania, selecion
         return message.reply('✅ Painel Oficial de Registro postado com sucesso!');
     }
 
-    if (command === '!painelausencia' || command === '!painel_ausencia' || command === '!postarausencia') {
+    // !painelausencia
+    if (command === '!painelausencia' || command === '!postarpainelausencia') {
         if (!message.member?.permissions.has(PermissionsBitField.Flags.Administrator)) {
             return message.reply('❌ Apenas administradores podem executar este comando.');
         }
@@ -305,11 +326,14 @@ Caso vá ficar ausente por **mais de 2 dias**, é obrigatório preencher o formu
     }
 });
 
-// INTERAÇÕES (BOTÕES / MODAIS / MENUS)
+// ===============================
+// HANDLER DE INTERAÇÕES (BOTÕES / MODAIS / MENUS)
+// ===============================
 client.on(Events.InteractionCreate, async (interaction) => {
     try {
         if (interaction.isButton()) {
 
+            // 1. CONFIRMAÇÃO DE LEITURA DAS REGRAS NO PV
             if (interaction.customId === 'btn_confirmar_regras_pv') {
                 confirmacoesRegras.set(interaction.user.id, {
                     confirmado: true,
@@ -333,11 +357,12 @@ client.on(Events.InteractionCreate, async (interaction) => {
                 } catch (e) {}
 
                 return interaction.reply({
-                    content: '✅ **CONFIRMAÇÃO REGISTRADA COM SUCESSO!**\nObrigado por ler e aceitar as regras oficiais. A Staff foi notificada!',
+                    content: '✅ **CONFIRMAÇÃO REGISTRADA COM SUCESSO!**\nObrigado por ler e aceitar as regras oficiais. A Staff foi notificada no canal de aprovação!',
                     ephemeral: false
                 });
             }
 
+            // 2. BOTÃO "REALIZAR REGISTRO" NO CANAL (#pedir-set)
             if (interaction.customId === 'btn_iniciar_registro') {
                 const enviouPV = await enviarRegrasPVComConfirmacao(interaction.user);
 
@@ -366,6 +391,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
                 });
             }
 
+            // 3. APROVAÇÃO OU RECUSA DO SET PELA STAFF
             if (interaction.customId.startsWith('btn_aprovar_') || interaction.customId.startsWith('btn_recusar_')) {
                 const isApprove = interaction.customId.startsWith('btn_aprovar_');
                 
@@ -408,10 +434,18 @@ client.on(Events.InteractionCreate, async (interaction) => {
                     await interaction.message.edit({ embeds: [approvedEmbed], components: [] });
                     await member.send(`🎉 **Parabéns!** Seu Set para **${matchedGroup.name}** foi APROVADO! Seu apelido foi ajustado para \`${nickFinal}\`.`).catch(() => {});
 
+                    // ENVIA O LOG OFICIAL PARA O CANAL DE LOGS (#logs-aprovados)
                     try {
                         let canalLogs = null;
                         if (CONFIG.CANAL_LOGS_ID) {
                             canalLogs = await client.channels.fetch(CONFIG.CANAL_LOGS_ID).catch(() => null);
+                        }
+                        if (!canalLogs && interaction.guild) {
+                            canalLogs = interaction.guild.channels.cache.get(CONFIG.CANAL_LOGS_ID) ||
+                                interaction.guild.channels.cache.find(c => 
+                                    c.name.toLowerCase().includes('log') || 
+                                    c.name.toLowerCase().includes('aprovado')
+                                );
                         }
                         if (canalLogs && typeof canalLogs.send === 'function') {
                             const embedLogAprovado = new EmbedBuilder()
@@ -433,7 +467,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
                         console.error('Erro ao enviar log de aprovação:', eLog);
                     }
 
-                    return interaction.reply({ content: `✅ Set de <@${userId}> APROVADO com sucesso! Log registrado.`, ephemeral: true });
+                    return interaction.reply({ content: `✅ Set de <@${userId}> APROVADO com sucesso! Log registrado no canal de logs.`, ephemeral: true });
                 } else {
                     const rejectedEmbed = EmbedBuilder.from(embed)
                         .setColor('#E74C3C')
@@ -447,6 +481,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
                 }
             }
 
+            // 4. BOTÃO REGISTRAR AUSÊNCIA
             if (interaction.customId === 'btn_iniciar_ausencia') {
                 const modal = new ModalBuilder()
                     .setCustomId('modal_ausencia')
@@ -483,6 +518,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
             }
         }
 
+        // SELEÇÃO DO MENU DE GRUPOS
         if (interaction.isStringSelectMenu() && interaction.customId === 'select_grupo_registro') {
             const roleId = interaction.values[0];
             const grupoObj = CONFIG.GRUPOS.find(g => g.roleId === roleId) || CONFIG.GRUPOS[0];
@@ -521,6 +557,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
             return interaction.showModal(modal);
         }
 
+        // MODAL SUBMIT DO REGISTRO DE SET
         if (interaction.isModalSubmit() && interaction.customId.startsWith('modal_registro_')) {
             const roleId = interaction.customId.replace('modal_registro_', '');
             const grupoObj = CONFIG.GRUPOS.find(g => g.roleId === roleId) || CONFIG.GRUPOS[0];
@@ -531,6 +568,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
             const nickFinal = formatarApelidoSeguro(grupoObj.tag, nomeJogo, idJogo);
 
+            // Verifica se o jogador clicou no botão de confirmação das regras no PV
             const confirmacaoPv = confirmacoesRegras.get(interaction.user.id);
             const statusRegrasPv = confirmacaoPv?.confirmado
                 ? '✅ **SIM — REGRAS LIDAS E CONFIRMADAS PELO JOGADOR NO PV!**'
@@ -569,14 +607,26 @@ client.on(Events.InteractionCreate, async (interaction) => {
                 if (CONFIG.CANAL_APROVACAO_ID) {
                     canalAprov = await client.channels.fetch(CONFIG.CANAL_APROVACAO_ID).catch(() => null);
                 }
-            } catch (errCh) {}
+                if (!canalAprov && interaction.guild) {
+                    canalAprov = interaction.guild.channels.cache.get(CONFIG.CANAL_APROVACAO_ID) ||
+                        interaction.guild.channels.cache.find(c => 
+                            c.name.toLowerCase().includes('aprova') || 
+                            c.name.toLowerCase().includes('set') || 
+                            c.name.toLowerCase().includes('staff')
+                        );
+                }
+            } catch (errCh) {
+                console.error('⚠️ Erro ao buscar canal de aprovação:', errCh);
+            }
 
             let enviouCanal = false;
             if (canalAprov && typeof canalAprov.send === 'function') {
                 try {
                     await canalAprov.send({ embeds: [embedAprovacao], components: [row] });
                     enviouCanal = true;
-                } catch (errSend) {}
+                } catch (errSend) {
+                    console.error(`❌ Erro ao enviar mensagem para o canal de aprovação:`, errSend);
+                }
             }
 
             const avisoEnvio = enviouCanal
@@ -589,6 +639,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
             });
         }
 
+        // MODAL SUBMIT DA AUSÊNCIA
         if (interaction.isModalSubmit() && interaction.customId === 'modal_ausencia') {
             const nomeId = interaction.fields.getTextInputValue('input_ausencia_nome_id');
             const datas = interaction.fields.getTextInputValue('input_ausencia_datas');
@@ -629,5 +680,4 @@ client.on(Events.InteractionCreate, async (interaction) => {
     }
 });
 
-// LOGIN DO BOT
 client.login(TOKEN);
