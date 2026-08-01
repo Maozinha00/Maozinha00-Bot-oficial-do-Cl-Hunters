@@ -1,0 +1,41 @@
+{
+  "candidates": [
+    {
+      "id": "1001",
+      "type": "HUNTERS",
+      "discordId": "100100",
+      "discordTag": "Arthur_Morgan#1024",
+      "nomeRP": "Arthur Morgan",
+      "gameId": "1024",
+      "score": 13,
+      "status": "APROVADO",
+      "createdAt": "2026-08-01T04:00:00.000Z"
+    },
+    {
+      "id": "1002",
+      "type": "SOUZA",
+      "discordId": "200200",
+      "discordTag": "Henrique_Souza#3050",
+      "nomeRP": "Henrique Souza",
+      "gameId": "3050",
+      "convidadoPor": "Líder Souza",
+      "status": "APROVADO",
+      "createdAt": "2026-08-01T04:10:00.000Z"
+    }
+  ],
+  "absences": [
+    {
+      "id": "abs01",
+      "discordId": "100100",
+      "discordTag": "Arthur_Morgan#1024",
+      "nomeRP": "Arthur Morgan",
+      "gameId": "1024",
+      "motivo": "Viagem de trabalho",
+      "dataSaida": "01/08/2026",
+      "dataRetorno": "07/08/2026",
+      "status": "ATIVA",
+      "createdAt": "2026-08-01T04:15:00.000Z"
+    }
+  ],
+  "logs": []
+}
