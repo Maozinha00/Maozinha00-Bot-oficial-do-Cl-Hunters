@@ -1,16 +1,13 @@
 /**
  * ============================================================================
  * BOT OFICIAL DE REGISTRO DE SET, REGRAS NO PV, QUIZ FIVEZ & LOGS
- * CLÃ HUNTERS & FAMÍLIA SOUZA (DISCORD.JS V14)
+ * CLÃ HUNTERS & FAMÍLIA SOUZA (DISCORD.JS V14 - ES MODULES)
  * ============================================================================
  * 
- * 🚀 FUNCIONA 100% DIRETO (SEM NECESSIDADE DE ARQUIVO .ENV)
+ * ⚠️ ATENÇÃO: Requer "type": "module" no seu package.json!
  * 
  * Instalação dos pacotes:
  * npm install discord.js express
- * 
- * Modo de uso:
- * node index.js
  */
 
 import express from 'express';
