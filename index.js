@@ -1,19 +1,12 @@
 /**
  * ============================================================================
  * BOT OFICIAL DE REGISTRO & AUSÊNCIAS - CLÃ HUNTERS & FAMÍLIA SOUZA
- * CÓDIGO COMPLETO (ES MODULES - import) - DISCORD.JS V14
+ * CÓDIGO COMPLETO (COMMONJS - require) - DISCORD.JS V14
  * ============================================================================
- *
- * Instruções para "type": "module" no package.json:
- * 1. Crie uma pasta e salve este arquivo como "index.js"
- * 2. Crie um arquivo "package.json" com "type": "module"
- * 3. Execute: npm install discord.js express dotenv
- * 4. Crie o arquivo .env com seu DISCORD_TOKEN
- * 5. Execute: node index.js
  */
 
-import express from 'express';
-import {
+const express = require('express');
+const {
     Client,
     GatewayIntentBits,
     Partials,
@@ -27,10 +20,9 @@ import {
     TextInputStyle,
     Events,
     PermissionsBitField
-} from 'discord.js';
-import dotenv from 'dotenv';
+} = require('discord.js');
 
-dotenv.config();
+require('dotenv').config();
 
 const TOKEN = process.env.DISCORD_TOKEN || process.env.TOKEN || "SEU_TOKEN_AQUI";
 const PORT = process.env.PORT || 3000;
@@ -54,6 +46,8 @@ const CONFIG = {
     "footer": "FiveZ & Lumenfall • Sistema Automático Anti-Queda • 25/07/2026 05:44",
     "tituloPainel": "Seja bem-vindo à nossa Comunidade!",
     "descricaoPainel": "📢 **AVISO IMPORTANTE PARA TODOS (@everyone):**\n> ⚠️ **PRAZO LIMITE DE REGISTRO:** Todo membro que entrar no servidor tem um prazo máximo de **3 dias** para realizar o registro de cidadania.\n> 🚫 Se você passar de **3 dias** no servidor sem realizar o seu registro (ficando sem os cargos dos grupos), você será **kickado automaticamente** pelo sistema!\n\nPara desbloquear todos os canais do servidor e registrar sua cidadania, selecione seu grupo abaixo.\n\n🎁 **Benefícios ao registrar:**\n> ✅ **Cargo do seu Grupo escolhido**\n> 🏷️ **Apelido Atualizado:** Com a tag da facção, seu Nome e ID\n> 🔓 **Liberação imediata** dos canais e categorias do servidor\n\n👇 *Clique no botão abaixo, escolha seu grupo e preencha o formulário!*",
+    "tituloPainelAusencia": "🌴 Painel de Registro de Ausência",
+    "descricaoPainelAusencia": "📢 **REGISTRO DE AUSÊNCIA & FOLGA**\n> 🌴 Pretende ficar ausente das atividades ou ações no servidor?\n> ⚠️ Registre sua ausência com motivo e prazo de retorno para avisar a administração e evitar ser removido por inatividade.\n\n👇 *Clique no botão abaixo para preencher sua justificativa!*",
     "regrasTexto": "1. Respeite a hierarquia e os companheiros de clã.\n2. Inatividade máxima permitida: 3 dias sem justificativa.\n3. Use a Tag oficial e o Apelido formatado obrigatoriamente.\n4. Proibido anti-jogo ou conduta antidesportiva nas cidades (FiveZ / Lumenfall).",
     "prazoRegistroDias": 3,
     "grupos": [
@@ -177,13 +171,11 @@ const client = new Client({
 
 const confirmacoesRegras = new Map();
 
-// Helper para formatar apelido (|Tag| Nome | ID)
 function formatarApelido(tag, nome, id) {
     let nick = `${tag} ${nome} | ${id}`.trim();
     return nick.length > 32 ? nick.substring(0, 29) + "..." : nick;
 }
 
-// Enviar Regras por DM
 async function enviarRegrasPV(user) {
     const embedPV = new EmbedBuilder()
         .setColor(CONFIG.embedColor || "#2ECC71")
@@ -206,7 +198,6 @@ async function enviarRegrasPV(user) {
     }
 }
 
-// Keep-Alive Express
 const app = express();
 app.get('/', (req, res) => res.send('🤖 Bot Clã Hunters Online!'));
 app.listen(PORT, () => console.log(`🌐 Servidor HTTP rodando na porta ${PORT}`));
@@ -226,7 +217,7 @@ client.on(Events.GuildMemberAdd, async (member) => {
 client.on(Events.MessageCreate, async (message) => {
     if (message.author.bot || !message.guild) return;
 
-    if (message.content === '!painel') {
+    if (message.content === '!painel' || message.content === '!painel-registro') {
         const isStaff = message.member.permissions.has(PermissionsBitField.Flags.Administrator) ||
             CONFIG.cargosAdminsAprovadores.some(r => message.member.roles.cache.has(r));
 
@@ -242,14 +233,32 @@ client.on(Events.MessageCreate, async (message) => {
             new ButtonBuilder()
                 .setCustomId('btn_iniciar_registro')
                 .setLabel('Realizar Registro')
-                .setStyle(ButtonStyle.Success),
+                .setStyle(ButtonStyle.Success)
+        );
+
+        await message.channel.send({ embeds: [embed], components: [row] });
+    }
+
+    if (message.content === '!painel-ausencia' || message.content === '!painel-ausência') {
+        const isStaff = message.member.permissions.has(PermissionsBitField.Flags.Administrator) ||
+            CONFIG.cargosAdminsAprovadores.some(r => message.member.roles.cache.has(r));
+
+        if (!isStaff) return message.reply({ content: "❌ Apenas Staff pode enviar o painel de ausência." });
+
+        const embedAusencia = new EmbedBuilder()
+            .setColor(CONFIG.embedColorAusencia || "#E67E22")
+            .setTitle(CONFIG.tituloPainelAusencia || "🌴 Painel de Registro de Ausência")
+            .setDescription(CONFIG.descricaoPainelAusencia || "Preencha sua justificativa de ausência.")
+            .setFooter({ text: CONFIG.footer });
+
+        const rowAusencia = new ActionRowBuilder().addComponents(
             new ButtonBuilder()
                 .setCustomId('btn_registrar_ausencia')
                 .setLabel('Registrar Ausência')
                 .setStyle(ButtonStyle.Secondary)
         );
 
-        await message.channel.send({ embeds: [embed], components: [row] });
+        await message.channel.send({ embeds: [embedAusencia], components: [rowAusencia] });
     }
 });
 
