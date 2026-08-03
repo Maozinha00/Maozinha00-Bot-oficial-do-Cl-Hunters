@@ -1,12 +1,19 @@
 /**
  * ============================================================================
  * BOT OFICIAL DE REGISTRO & AUSÊNCIAS - CLÃ HUNTERS & FAMÍLIA SOUZA
- * CÓDIGO COMPLETO (COMMONJS - require) - DISCORD.JS V14
+ * CÓDIGO COMPLETO (ES MODULES - import) - DISCORD.JS V14
  * ============================================================================
+ *
+ * Instruções para "type": "module" no package.json:
+ * 1. Crie uma pasta e salve este arquivo como "index.js"
+ * 2. Crie um arquivo "package.json" com "type": "module"
+ * 3. Execute: npm install discord.js express dotenv
+ * 4. Crie o arquivo .env com seu DISCORD_TOKEN
+ * 5. Execute: node index.js
  */
 
-const express = require('express');
-const {
+import express from 'express';
+import {
     Client,
     GatewayIntentBits,
     Partials,
@@ -20,9 +27,10 @@ const {
     TextInputStyle,
     Events,
     PermissionsBitField
-} = require('discord.js');
+} from 'discord.js';
+import dotenv from 'dotenv';
 
-require('dotenv').config();
+dotenv.config();
 
 const TOKEN = process.env.DISCORD_TOKEN || process.env.TOKEN || "SEU_TOKEN_AQUI";
 const PORT = process.env.PORT || 3000;
@@ -171,11 +179,13 @@ const client = new Client({
 
 const confirmacoesRegras = new Map();
 
+// Helper para formatar apelido (|Tag| Nome | ID)
 function formatarApelido(tag, nome, id) {
     let nick = `${tag} ${nome} | ${id}`.trim();
     return nick.length > 32 ? nick.substring(0, 29) + "..." : nick;
 }
 
+// Enviar Regras por DM
 async function enviarRegrasPV(user) {
     const embedPV = new EmbedBuilder()
         .setColor(CONFIG.embedColor || "#2ECC71")
@@ -198,6 +208,7 @@ async function enviarRegrasPV(user) {
     }
 }
 
+// Keep-Alive Express
 const app = express();
 app.get('/', (req, res) => res.send('🤖 Bot Clã Hunters Online!'));
 app.listen(PORT, () => console.log(`🌐 Servidor HTTP rodando na porta ${PORT}`));
