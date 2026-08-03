@@ -136,18 +136,38 @@ function eRespostaValida(texto) {
     if (!texto || typeof texto !== 'string') return false;
     const limpo = texto.trim().toLowerCase();
     
-    if (limpo.length < 3) return false;
+    if (limpo.length < 5) return false;
     
     const invalidas = [
         '.', ',', '..', '...', '....', '?', '!', '-', 'a', 'x', 'n', 'no',
         'nao', 'não', 'nao sei', 'não sei', 'num sei', 'nem sei', 'sei nao', 'sei não',
         'sei la', 'sei lá', 'slk', 'fodase', 'foda-se', 'nada', 'nenhum', 'nenhuma',
         'qualquer', 'qualquer coisa', 'nao li', 'não li', 'nao sei de nada', 'recuso',
-        'depois', 'pular', 'so sim', 'so nao', 'sla', 'slam', 'saber nao'
+        'depois', 'pular', 'so sim', 'so nao', 'sla', 'slam', 'saber nao', 'concordo',
+        'sim li', 'sim, li', 'sim ciente', 'sim, ciente', 'tudo ok'
     ];
 
     if (invalidas.includes(limpo)) return false;
     if (/^[.,!?;:\-_\s]+$/.test(limpo)) return false;
+
+    // BLOQUEIO DE COPIAR E COLAR DE EXEMPLOS OU DA PERGUNTA:
+    const frasesCopiadas = [
+        'fivez.gitbook.io',
+        'gitbook.io',
+        'sim, li em fivez.gitbook.io/fivez-regras',
+        'sim, li em',
+        'sim, ciente do prazo e anti-jogo',
+        'o que é rdm, vdm e amor à vida na cidade',
+        'o que e rdm, vdm e amor a vida na cidade',
+        'ciente de safezone, anti-jogo e inatividade',
+        'responda com suas palavras',
+        'proibido copiar e colar',
+        'ex: sim, li em'
+    ];
+
+    for (const frase of frasesCopiadas) {
+        if (limpo.includes(frase)) return false;
+    }
 
     return true;
 }
@@ -253,10 +273,17 @@ client.on(Events.InteractionCreate, async (interaction) => {
     }
 
     if (interaction.isButton() && interaction.customId === 'btn_iniciar_registro') {
-        const gruposValidos = (CONFIG.grupos || []).filter(g => g && (g.roleId || g.id));
+        const gruposValidos = (CONFIG.grupos || []).filter(g => 
+            g && (g.roleId || g.id) &&
+            g.id !== 'grupo_cidadao_cincoz' &&
+            g.roleId !== '1528075981078663259' &&
+            g.roleId !== CONFIG.cargoCidadaoGeralId &&
+            g.roleId !== CONFIG.cargoNaoRegistradoId &&
+            (g.name || '').toLowerCase() !== 'cidadão fivez'
+        );
         
         if (gruposValidos.length === 0) {
-            return interaction.reply({ content: "❌ Nenhum grupo configurado no sistema.", ephemeral: true });
+            return interaction.reply({ content: "❌ Nenhum grupo disponível para seleção no momento.", ephemeral: true });
         }
 
         const options = gruposValidos.map(g => {
@@ -302,17 +329,17 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
     if (interaction.isStringSelectMenu() && interaction.customId === 'select_grupo') {
         const roleId = interaction.values[0];
-        const modal = new ModalBuilder().setCustomId(`modal_reg_${roleId}`).setTitle('Formulário de Registro');
+        const modal = new ModalBuilder().setCustomId('modal_reg_' + roleId).setTitle('Formulário de Registro');
 
-        const lblRegras = (CONFIG.perguntaRegrasCincoZ || 'Leu as Regras FiveZ (fivez.gitbook.io/fivez-regras)?').substring(0, 45);
-        const lblInat = (CONFIG.perguntaInatividadecincoZ || 'Ciente do prazo de 3 dias e regras de anti-jogo?').substring(0, 45);
+        const lblRegras = (CONFIG.perguntaRegrasCincoZ || 'O que é RDM, VDM e Amor à Vida na Cidade?').substring(0, 45);
+        const lblInat = (CONFIG.perguntaInatividadecincoZ || 'Ciente de SafeZone, Anti-Jogo e Inatividade?').substring(0, 45);
 
         modal.addComponents(
             new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId('nome').setLabel('Nome no Jogo').setStyle(TextInputStyle.Short).setRequired(true)),
             new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId('id_jogo').setLabel('ID no Jogo').setStyle(TextInputStyle.Short).setRequired(true)),
             new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId('recrutador').setLabel('Quem te recrutou?').setStyle(TextInputStyle.Short).setRequired(true)),
-            new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId('regras_fivez').setLabel(lblRegras).setPlaceholder('Ex: Sim, li em fivez.gitbook.io/fivez-regras').setStyle(TextInputStyle.Short).setRequired(true)),
-            new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId('regras_inatividade').setLabel(lblInat).setPlaceholder('Ex: Sim, ciente do prazo e anti-jogo').setStyle(TextInputStyle.Short).setRequired(true))
+            new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId('regras_fivez').setLabel(lblRegras).setPlaceholder('Explique com suas palavras (Proibido copiar/colar)').setStyle(TextInputStyle.Short).setRequired(true)),
+            new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId('regras_inatividade').setLabel(lblInat).setPlaceholder('Responda com suas palavras (Não copie exemplo)').setStyle(TextInputStyle.Short).setRequired(true))
         );
 
         return interaction.showModal(modal);
