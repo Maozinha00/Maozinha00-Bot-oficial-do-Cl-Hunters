@@ -38,11 +38,13 @@ const PORT = process.env.PORT || 3000;
 const CONFIG = {
     "token": "",
     "canalRegistroId": "123456789012345678",
-    "canalAprovacaoId": "123456789012345678",
-    "canalLogsId": "123456789012345678",
+    "canalAprovacaoId": "1515448473246498866",
+    "canalLogsId": "1515448473246498866",
     "canalEntradaSaidaId": "123456789012345678",
-    "canalAusenciaLogsId": "123456789012345678",
+    "canalAusenciaId": "1531070382365343774",
+    "canalAusenciaLogsId": "1531670383483158700",
     "cargosAdminsAprovadores": [
+        "1515125822795546715",
         "123456789012345678",
         "987654321098765432"
     ],
