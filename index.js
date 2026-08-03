@@ -1,19 +1,19 @@
 /**
  * ============================================================================
  * BOT OFICIAL DE REGISTRO & AUSÊNCIAS - CLÃ HUNTERS & FAMÍLIA SOUZA
- * CÓDIGO COMPLETO, ATUALIZADO E PRONTO PARA HOSPEDAGEM (DISCORD.JS V14)
+ * CÓDIGO COMPLETO (ES MODULES - import) - DISCORD.JS V14
  * ============================================================================
  *
- * Instruções de instalação:
- * 1. Crie uma pasta e cole este arquivo como "index.js"
- * 2. Execute: npm init -y
+ * Instruções para "type": "module" no package.json:
+ * 1. Crie uma pasta e salve este arquivo como "index.js"
+ * 2. Crie um arquivo "package.json" com "type": "module"
  * 3. Execute: npm install discord.js express dotenv
- * 4. Configure o arquivo .env com seu TOKEN
+ * 4. Crie o arquivo .env com seu DISCORD_TOKEN
  * 5. Execute: node index.js
  */
 
-const express = require('express');
-const {
+import express from 'express';
+import {
     Client,
     GatewayIntentBits,
     Partials,
@@ -27,9 +27,10 @@ const {
     TextInputStyle,
     Events,
     PermissionsBitField
-} = require('discord.js');
+} from 'discord.js';
+import dotenv from 'dotenv';
 
-require('dotenv').config();
+dotenv.config();
 
 const TOKEN = process.env.DISCORD_TOKEN || process.env.TOKEN || "SEU_TOKEN_AQUI";
 const PORT = process.env.PORT || 3000;
@@ -186,7 +187,7 @@ function formatarApelido(tag, nome, id) {
 async function enviarRegrasPV(user) {
     const embedPV = new EmbedBuilder()
         .setColor(CONFIG.embedColor || "#2ECC71")
-        .setTitle("📜 REGRAS OBRIGATÓRIAS - CLÃ HUNTERS")
+        .setTitle("📜 REGRAS OBRIGATÓRIAS - CLÃ HUNTERS & FAMÍLIA SOUZA")
         .setDescription(`Olá <@${user.id}>!\n\n${CONFIG.regrasTexto}\n\n**Confirme a leitura no botão abaixo:**`)
         .setFooter({ text: CONFIG.footer });
 
