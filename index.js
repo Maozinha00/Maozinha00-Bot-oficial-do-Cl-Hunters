@@ -1,14 +1,14 @@
 /**
  * ============================================================================
  * BOT OFICIAL DE REGISTRO & AUSÊNCIAS - CLÃ HUNTERS & FAMÍLIA SOUZA
- * CÓDIGO COMPLETO (ES MODULES - import) - DISCORD.JS V14
+ * CÓDIGO COMPLETO CORRIGIDO (ES MODULES - import) - DISCORD.JS V14
  * ============================================================================
  *
- * Instruções para "type": "module" no package.json:
- * 1. Crie uma pasta e salve este arquivo como "index.js"
- * 2. Crie um arquivo "package.json" com "type": "module"
+ * Instruções de instalação:
+ * 1. Salve este arquivo como "index.js"
+ * 2. Crie "package.json" com "type": "module"
  * 3. Execute: npm install discord.js express dotenv
- * 4. Crie o arquivo .env com seu DISCORD_TOKEN
+ * 4. Crie o arquivo .env com DISCORD_TOKEN=seu_token_aqui
  * 5. Execute: node index.js
  */
 
@@ -53,12 +53,12 @@ const CONFIG = {
     "authorName": "👑 FAMÍLIA SOUZA INFINITA 👑",
     "authorSub": "🏡 Sistema de Registro — Cidadania & Grupos",
     "thumbnailUrl": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=300&q=80",
-    "footer": "FiveZ & Lumenfall • Sistema Automático Anti-Queda • 25/07/2026 05:44",
+    "footer": "FiveZ & Lumenfall • Sistema Automático Anti-Queda",
     "tituloPainel": "Seja bem-vindo à nossa Comunidade!",
     "descricaoPainel": "📢 **AVISO IMPORTANTE PARA TODOS (@everyone):**\n> ⚠️ **PRAZO LIMITE DE REGISTRO:** Todo membro que entrar no servidor tem um prazo máximo de **3 dias** para realizar o registro de cidadania.\n> 🚫 Se você passar de **3 dias** no servidor sem realizar o seu registro (ficando sem os cargos dos grupos), você será **kickado automaticamente** pelo sistema!\n\nPara desbloquear todos os canais do servidor e registrar sua cidadania, selecione seu grupo abaixo.\n\n🎁 **Benefícios ao registrar:**\n> ✅ **Cargo do seu Grupo escolhido**\n> 🏷️ **Apelido Atualizado:** Com a tag da facção, seu Nome e ID\n> 🔓 **Liberação imediata** dos canais e categorias do servidor\n\n👇 *Clique no botão abaixo, escolha seu grupo e preencha o formulário!*",
     "tituloPainelAusencia": "🌴 Painel de Registro de Ausência",
     "descricaoPainelAusencia": "📢 **REGISTRO DE AUSÊNCIA & FOLGA**\n> 🌴 Pretende ficar ausente das atividades ou ações no servidor?\n> ⚠️ Registre sua ausência com motivo e prazo de retorno para avisar a administração e evitar ser removido por inatividade.\n\n👇 *Clique no botão abaixo para preencher sua justificativa!*",
-    "regrasTexto": "# 📜 REGRAS OFICIAIS • CLÃ HUNTERS\n\n<@&1527848364496912404>\n<@&1523277774436171796>\n<@&1528075981078663259>\n<@&1515125826780135485>\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n## ⚔️ 1. Respeito\n\nRespeite todos os membros do clã, aliados, adversários e a liderança. Qualquer falta de respeito poderá resultar em punição.\n\n## 👑 2. Respeite a Hierarquia\n\nAs decisões da liderança devem ser respeitadas. Caso tenha dúvidas ou problemas, procure um superior.\n\n## 🦺 3. Uniforme Obrigatório\n\nÉ obrigatório utilizar o **Preset Hunters** durante:\n\nbind keyboard \"6\" \"preset Hunters\"\n\n* 🔴 Áreas Vermelhas;\n* 🟡 Áreas Amarelas;\n* ⚔️ Eventos;\n* 💥 Horários de PVP.\n\nEntrar nessas situações sem o uniforme poderá resultar em advertência.\n\n## 📻 4. Rádio Oficial\n\nÉ obrigatório permanecer na **rádio 633** durante todas as atividades do Clã.\n\n🛒 Para vendas, utilize exclusivamente a **rádio 635**.\n\n## 🐺 5. Prioridade ao Clã\n\nSempre que houver **QRR**, defesa do território ou convocação da liderança, o **Clã Hunters** deve ser sua prioridade.\n\n## 🚫 6. Não Prejudique o Clã\n\nÉ proibido realizar qualquer ação que possa gerar punições ao Clã ou prejudicar sua reputação.\n\n## 🤝 7. Trabalho em Equipe\n\nAjude seus companheiros sempre que possível. O sucesso do Clã depende da união de todos.\n\n## 📦 8. Estoque do Clã\n\nTodo aço referente às metas obrigatórias deve ser depositado no estoque do Clã e registrado corretamente no painel.\n\n## 📅 9. Regra de Ausência\n\nCaso precise se ausentar, é **obrigatório informar a liderança** e registrar sua ausência.\n\n❌ Membros que ficarem **3 dias consecutivos sem entrar na cidade e sem justificar a ausência** serão **retirados do painel do Clã Hunters**, podendo perder benefícios e ficar sujeitos à avaliação da liderança para retorno.\n\n## 💬 10. Comunicação\n\nMantenha uma comunicação organizada nas rádios e no Discord. Evite discussões, brincadeiras durante operações e informações desnecessárias.\n\n## ⚠️ 11. Punições\n\nO descumprimento de qualquer regra poderá resultar em:\n\n* 🔸 Advertência;\n* 🔸 Suspensão;\n* 🔸 Rebaixamento;\n* 🔸 Perda de benefícios;\n* 🔸 Retirada do painel;\n* 🔸 Expulsão do Clã Hunters.\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n> 🐺 **DISCIPLINA • RESPEITO • LEALDADE • UNIÃO**\n>\n> **Quem veste o Preset Hunters representa todo o Clã. Honre a camisa e fortaleça a nossa família!** ⚔️🔥",
+    "regrasTexto": "# 📜 REGRAS OFICIAIS • CLÃ HUNTERS\n\n<@&1527848364496912404>\n<@&1523277774436171796>\n<@&1528075981078663259>\n<@&1515125826780135485>\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n## ⚔️ 1. Respeito\nRespeite todos os membros do clã, aliados, adversários e a liderança. Qualquer falta de respeito poderá resultar em punição.\n\n## 👑 2. Respeite a Hierarquia\nAs decisões da liderança devem ser respeitadas. Caso tenha dúvidas ou problemas, procure um superior.\n\n## 🦺 3. Uniforme Obrigatório\nÉ obrigatório utilizar o **Preset Hunters** durante:\nbind keyboard \"6\" \"preset Hunters\"\n* 🔴 Áreas Vermelhas;\n* 🟡 Áreas Amarelas;\n* ⚔️ Eventos;\n* 💥 Horários de PVP.\n\n## 📻 4. Rádio Oficial\nÉ obrigatório permanecer na **rádio 633** durante todas as atividades do Clã.\n🛒 Para vendas, utilize exclusivamente a **rádio 635**.\n\n## 🐺 5. Prioridade ao Clã\nSempre que houver **QRR**, defesa do território ou convocação da liderança, o **Clã Hunters** deve ser sua prioridade.\n\n## 🚫 6. Não Prejudique o Clã\nÉ proibido realizar qualquer ação que possa gerar punições ao Clã ou prejudicar sua reputação.\n\n## 🤝 7. Trabalho em Equipe\nAjude seus companheiros sempre que possível. O sucesso do Clã depende da união de todos.\n\n## 📦 8. Estoque do Clã\nTodo aço referente às metas obrigatórias deve ser depositado no estoque do Clã e registrado corretamente no painel.\n\n## 📅 9. Regra de Ausência\nCaso precise se ausentar, é **obrigatório informar a liderança** e registrar sua ausência.\n❌ Membros que ficarem **3 dias consecutivos sem entrar na cidade e sem justificar a ausência** serão **retirados do painel do Clã Hunters**.\n\n## 💬 10. Comunicação\nMantenha uma comunicação organizada nas rádios e no Discord.\n\n## ⚠️ 11. Punições\nO descumprimento de qualquer regra poderá resultar em Advertência, Suspensão, Rebaixamento ou Expulsão.\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n> 🐺 **DISCIPLINA • RESPEITO • LEALDADE • UNIÃO**\n> **Quem veste o Preset Hunters representa todo o Clã. Honre a camisa e fortaleça a nossa família!** ⚔️🔥",
     "regrasLink": "https://fivez.gitbook.io/fivez-regras",
     "perguntaRegrasCincoZ": "O que é RDM, VDM e Amor à Vida na Cidade?",
     "perguntaInatividadecincoZ": "Ciente de SafeZone, Anti-Jogo e Inatividade?",
@@ -136,7 +136,7 @@ function formatarApelido(tag, nome, id) {
     return nick.length > 32 ? nick.substring(0, 29) + "..." : nick;
 }
 
-// Enviar Regras por DM
+// Enviar Regras por DM (PV)
 async function enviarRegrasPV(user) {
     const embedPV = new EmbedBuilder()
         .setColor(CONFIG.embedColor || "#2ECC71")
@@ -172,7 +172,7 @@ client.on(Events.GuildMemberAdd, async (member) => {
     await enviarRegrasPV(member.user);
     const canal = member.guild.channels.cache.get(CONFIG.canalEntradaSaidaId);
     if (canal && canal.isTextBased()) {
-        canal.send({ content: "👋 Bem-vindo <@" + member.id + ">! Verifique seu PV para as regras (https://fivez.gitbook.io/fivez-regras) e registre-se em <#" + CONFIG.canalRegistroId + ">." });
+        canal.send({ content: "👋 Bem-vindo <@" + member.id + ">! Verifique seu PV para as regras (" + (CONFIG.regrasLink || "https://fivez.gitbook.io/fivez-regras") + ") e registre-se em <#" + CONFIG.canalRegistroId + ">." });
     }
 });
 
@@ -231,10 +231,11 @@ client.on(Events.InteractionCreate, async (interaction) => {
     }
 
     if (interaction.isButton() && interaction.customId === 'btn_iniciar_registro') {
+        // CORRIGIDO: Usando CONFIG.grupos em vez de currentConfig.grupos
         const selectMenu = new StringSelectMenuBuilder()
             .setCustomId('select_grupo')
             .setPlaceholder('Selecione sua Tag / Grupo...')
-            .addOptions((currentConfig.grupos || []).map(g => ({
+            .addOptions((CONFIG.grupos || []).map(g => ({
                 label: (g.name + " " + g.tag).substring(0, 100),
                 value: g.roleId,
                 emoji: g.emoji || '🎯',
@@ -371,14 +372,11 @@ client.on(Events.InteractionCreate, async (interaction) => {
                         await targetMember.setNickname(nick);
                     }
                     if (CONFIG.regrasTexto) {
+                        // CORRIGIDO: String multilinha agora usa template literal com acento grave (`...`)
                         const dmEmbed = new EmbedBuilder()
                             .setColor(CONFIG.embedColor || '#2ECC71')
                             .setTitle('🎉 Seja bem-vindo ao Clã Hunters!')
-                            .setDescription("Olá <@" + targetId + ">, seu registro foi **APROVADO**! 🎉
-
-Confira abaixo as **REGRAS OFICIAIS DO CLÃ HUNTERS**:
-
-" + CONFIG.regrasTexto)
+                            .setDescription(`Olá <@${targetId}>, seu registro foi **APROVADO**! 🎉\n\nConfira abaixo as **REGRAS OFICIAIS DO CLÃ HUNTERS**:\n\n${CONFIG.regrasTexto}`)
                             .setFooter({ text: CONFIG.footer || 'Clã Hunters' })
                             .setTimestamp();
                         await targetMember.send({ embeds: [dmEmbed] }).catch(() => null);
