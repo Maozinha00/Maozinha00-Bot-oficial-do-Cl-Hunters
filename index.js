@@ -68,123 +68,51 @@ const CONFIG = {
     "grupos": [
         {
             "id": "grupo_cidadao_cincoz",
-            "name": "Cidadão FiveZ & Lumenfall",
-            "roleId": "123456789012345691",
-            "tag": "|Cidadão|",
-            "description": "Cargo oficial de cidadania e moradia liberada nas cidades FiveZ e Lumenfall",
+            "name": "Cidadão FiveZ",
+            "roleId": "1528075981078663259",
+            "tag": "[Cidadão]",
+            "description": "Nome temporário antes de ser aprovado",
             "emoji": "🏙️"
         },
         {
-            "id": "grupo_morador",
-            "name": "Morador Registrado",
-            "roleId": "123456789012345693",
-            "tag": "|Morador|",
-            "description": "Cargo de morador registrado após aprovação de RP",
-            "emoji": "📜"
-        },
-        {
             "id": "grupo_hunters_recruta",
-            "name": "Hunters FiveZ (Recruta)",
-            "roleId": "123456789012345678",
-            "tag": "|Recruta|",
-            "description": "Set padrão para recrutas e novatos em teste no Clã Hunters",
+            "name": "Recruta Hunters",
+            "roleId": "1523277774436171796",
+            "tag": "[Recruta]",
+            "description": "Cargo de recruta em teste",
             "emoji": "🎯"
         },
         {
             "id": "grupo_hunters_membro",
-            "name": "Membro Oficial Hunters",
-            "roleId": "123456789012345679",
-            "tag": "|Hunters|",
-            "description": "Membros oficiais aprovados do Clã Hunters",
-            "emoji": "🛡️"
-        },
-        {
-            "id": "grupo_hunters_elite",
-            "name": "Elite Hunters FiveZ",
-            "roleId": "123456789012345680",
-            "tag": "|Elite-Hunters|",
-            "description": "Tropa de elite e veteranos de combate FiveZ",
-            "emoji": "⚡"
-        },
-        {
-            "id": "grupo_sublider_hunters",
-            "name": "Sub-Líder Hunters",
-            "roleId": "123456789012345681",
-            "tag": "|SubLíder-Hunters|",
-            "description": "Sub-Liderança operacional do Clã Hunters",
-            "emoji": "🎖️"
-        },
-        {
-            "id": "grupo_lider_hunters",
-            "name": "Líder Clã Hunters",
-            "roleId": "123456789012345682",
-            "tag": "|Líder-Hunters|",
-            "description": "Liderança máxima do Clã Hunters",
-            "emoji": "👑"
+            "name": "Membro Hunters",
+            "roleId": "1527848364496912404",
+            "tag": "[Hunters]",
+            "description": "Membro oficial do Clã Hunters",
+            "emoji": "🐺"
         },
         {
             "id": "grupo_souza_membro",
-            "name": "Membro Família Souza",
-            "roleId": "123456789012345683",
-            "tag": "|FamíliaSouza|",
-            "description": "Membros da Família Souza no FiveZ / Lumenfall",
+            "name": "Família Souza",
+            "roleId": "1515125826780135485",
+            "tag": "[Souza]",
+            "description": "Membro da Família Souza",
             "emoji": "⚜️"
         },
         {
-            "id": "grupo_souza_gerente",
-            "name": "Gerente Família Souza",
-            "roleId": "123456789012345684",
-            "tag": "|Gerente-Souza|",
-            "description": "Gestores de frota, armas e suprimentos Família Souza",
-            "emoji": "💼"
-        },
-        {
-            "id": "grupo_souza_lider",
-            "name": "Líder Família Souza",
-            "roleId": "123456789012345685",
-            "tag": "|Líder-Souza|",
-            "description": "Liderança suprema da Família Souza",
-            "emoji": "👑"
-        },
-        {
-            "id": "grupo_comprador",
-            "name": "Comprador FiveZ / Souza",
-            "roleId": "123456789012345686",
-            "tag": "|Comprador|",
-            "description": "Compradores oficiais e negociantes FiveZ",
-            "emoji": "🛒"
-        },
-        {
-            "id": "grupo_lumenfall",
-            "name": "Membro Lumenfall",
-            "roleId": "123456789012345687",
-            "tag": "|Lumenfall|",
-            "description": "Integrantes oficiais na cidade Lumenfall RP",
-            "emoji": "🌌"
-        },
-        {
-            "id": "grupo_staff",
-            "name": "Staff / Moderador",
-            "roleId": "123456789012345688",
-            "tag": "|Staff|",
-            "description": "Equipe de moderação, aprovação e suporte",
-            "emoji": "🛠️"
-        },
-        {
             "id": "grupo_aliado",
-            "name": "Aliado / Parceiro",
+            "name": "Aliado",
             "roleId": "123456789012345689",
-            "tag": "|Aliado|",
-            "description": "Clãs parceiros e aliados de aliança militar",
+            "tag": "[Aliado]",
+            "description": "Amigos que estão sempre aqui",
             "emoji": "🤝"
         },
         {
-            "id": "grupo_ausente",
-            "name": "Licença / Ausente",
-            "roleId": "123456789012345690",
-            "tag": "|Ausente|",
-            "description": "Membros em período de justificativa ou ausência",
-            "emoji": "⏳"
+            "id": "grupo_comprador",
+            "name": "Comprador",
+            "roleId": "123456789012345686",
+            "tag": "[Comprador]",
+            "description": "Comprador de armas",
+            "emoji": "🛒"
         }
     ]
 };
@@ -305,11 +233,16 @@ client.on(Events.InteractionCreate, async (interaction) => {
     if (interaction.isButton() && interaction.customId === 'btn_iniciar_registro') {
         const selectMenu = new StringSelectMenuBuilder()
             .setCustomId('select_grupo')
-            .setPlaceholder('Escolha seu grupo...')
-            .addOptions(CONFIG.grupos.map(g => ({ label: g.name, value: g.roleId, emoji: g.emoji || '🎯', description: g.description.substring(0, 50) })));
+            .setPlaceholder('Selecione sua Tag / Grupo...')
+            .addOptions((currentConfig.grupos || []).map(g => ({
+                label: (g.name + " " + g.tag).substring(0, 100),
+                value: g.roleId,
+                emoji: g.emoji || '🎯',
+                description: (g.description || ("Tag " + g.tag)).substring(0, 50)
+            })));
 
         return interaction.reply({ 
-            content: "Selecione seu grupo abaixo. Verifique se confirmou as regras no seu PV!", 
+            content: "👇 **Selecione a sua Tag / Grupo abaixo para abrir o formulário de cidadania:**", 
             components: [new ActionRowBuilder().addComponents(selectMenu)], 
             ephemeral: true 
         });
