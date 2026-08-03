@@ -67,12 +67,6 @@ const CONFIG = {
     "prazoRegistroDias": 3,
     "grupos": [
         {
-            "id": "grupo_cidadao_cincoz",
-            "name": "Cidadão FiveZ",
-            "roleId": "1528075981078663259",
-            "tag": "[Cidadão]",
-            "description": "Nome temporário antes de ser aprovado",
-            "emoji": "🏙️"
         },
         {
             "id": "grupo_hunters_recruta",
