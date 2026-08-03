@@ -1,19 +1,12 @@
 /**
  * ============================================================================
  * BOT OFICIAL DE REGISTRO & AUSÊNCIAS - CLÃ HUNTERS & FAMÍLIA SOUZA
- * CÓDIGO COMPLETO (ES MODULES - import) - DISCORD.JS V14
+ * CÓDIGO COMPLETO (COMMONJS - require) - DISCORD.JS V14
  * ============================================================================
- *
- * Instruções para "type": "module" no package.json:
- * 1. Crie uma pasta e salve este arquivo como "index.js"
- * 2. Crie um arquivo "package.json" com "type": "module"
- * 3. Execute: npm install discord.js express dotenv
- * 4. Crie o arquivo .env com seu DISCORD_TOKEN
- * 5. Execute: node index.js
  */
 
-import express from 'express';
-import {
+const express = require('express');
+const {
     Client,
     GatewayIntentBits,
     Partials,
@@ -27,10 +20,9 @@ import {
     TextInputStyle,
     Events,
     PermissionsBitField
-} from 'discord.js';
-import dotenv from 'dotenv';
+} = require('discord.js');
 
-dotenv.config();
+require('dotenv').config();
 
 const TOKEN = process.env.DISCORD_TOKEN || process.env.TOKEN || "SEU_TOKEN_AQUI";
 const PORT = process.env.PORT || 3000;
@@ -57,6 +49,9 @@ const CONFIG = {
     "tituloPainelAusencia": "🌴 Painel de Registro de Ausência",
     "descricaoPainelAusencia": "📢 **REGISTRO DE AUSÊNCIA & FOLGA**\n> 🌴 Pretende ficar ausente das atividades ou ações no servidor?\n> ⚠️ Registre sua ausência com motivo e prazo de retorno para avisar a administração e evitar ser removido por inatividade.\n\n👇 *Clique no botão abaixo para preencher sua justificativa!*",
     "regrasTexto": "1. Respeite a hierarquia e os companheiros de clã.\n2. Inatividade máxima permitida: 3 dias sem justificativa.\n3. Use a Tag oficial e o Apelido formatado obrigatoriamente.\n4. Proibido anti-jogo ou conduta antidesportiva nas cidades (FiveZ / Lumenfall).",
+    "regrasLink": "https://fivez.gitbook.io/fivez-regras",
+    "perguntaRegrasCincoZ": "Leu as Regras FiveZ (fivez.gitbook.io/fivez-regras)?",
+    "perguntaInatividadecincoZ": "Ciente do prazo de 3 dias e regras de anti-jogo?",
     "prazoRegistroDias": 3,
     "grupos": [
         {
@@ -179,13 +174,11 @@ const client = new Client({
 
 const confirmacoesRegras = new Map();
 
-// Helper para formatar apelido (|Tag| Nome | ID)
 function formatarApelido(tag, nome, id) {
     let nick = `${tag} ${nome} | ${id}`.trim();
     return nick.length > 32 ? nick.substring(0, 29) + "..." : nick;
 }
 
-// Enviar Regras por DM
 async function enviarRegrasPV(user) {
     const embedPV = new EmbedBuilder()
         .setColor(CONFIG.embedColor || "#2ECC71")
@@ -208,7 +201,6 @@ async function enviarRegrasPV(user) {
     }
 }
 
-// Keep-Alive Express
 const app = express();
 app.get('/', (req, res) => res.send('🤖 Bot Clã Hunters Online!'));
 app.listen(PORT, () => console.log(`🌐 Servidor HTTP rodando na porta ${PORT}`));
@@ -304,12 +296,17 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
     if (interaction.isStringSelectMenu() && interaction.customId === 'select_grupo') {
         const roleId = interaction.values[0];
-        const modal = new ModalBuilder().setCustomId(`modal_reg_${roleId}`).setTitle('Formulário de Registro');
+        const modal = new ModalBuilder().setCustomId('modal_reg_' + roleId).setTitle('Formulário de Registro');
+
+        const lblRegras = (CONFIG.perguntaRegrasCincoZ || 'Leu as Regras (fivez.gitbook.io/fivez-regras)?').substring(0, 45);
+        const lblInat = (CONFIG.perguntaInatividadecincoZ || 'Ciente do prazo de 3 dias e regras anti-jogo?').substring(0, 45);
 
         modal.addComponents(
             new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId('nome').setLabel('Nome no Jogo').setStyle(TextInputStyle.Short).setRequired(true)),
             new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId('id_jogo').setLabel('ID no Jogo').setStyle(TextInputStyle.Short).setRequired(true)),
-            new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId('recrutador').setLabel('Quem te recrutou?').setStyle(TextInputStyle.Short).setRequired(true))
+            new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId('recrutador').setLabel('Quem te recrutou?').setStyle(TextInputStyle.Short).setRequired(true)),
+            new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId('regras_fivez').setLabel(lblRegras).setPlaceholder('Ex: Sim, li em fivez.gitbook.io/fivez-regras').setStyle(TextInputStyle.Short).setRequired(true)),
+            new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId('regras_inatividade').setLabel(lblInat).setPlaceholder('Ex: Sim, ciente do prazo e anti-jogo').setStyle(TextInputStyle.Short).setRequired(true))
         );
 
         return interaction.showModal(modal);
@@ -326,7 +323,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
                 .setColor(CONFIG.embedColorAusencia)
                 .setTitle('🌴 Registro de Ausência')
                 .addFields(
-                    { name: 'Membro', value: `<@${interaction.user.id}>`, inline: true },
+                    { name: 'Membro', value: '<@' + interaction.user.id + '>', inline: true },
                     { name: 'Início', value: inicio, inline: true },
                     { name: 'Retorno', value: retorno, inline: true },
                     { name: 'Motivo', value: motivo }
@@ -343,31 +340,43 @@ client.on(Events.InteractionCreate, async (interaction) => {
         const nome = interaction.fields.getTextInputValue('nome');
         const idJogo = interaction.fields.getTextInputValue('id_jogo');
         const recrutador = interaction.fields.getTextInputValue('recrutador');
-        const confirmado = confirmacoesRegras.get(interaction.user.id) ? "✅ Sim" : "❌ Não (Verificar PV)";
+        let respRegras = '';
+        let respInat = '';
+        try {
+            respRegras = interaction.fields.getTextInputValue('regras_fivez');
+            respInat = interaction.fields.getTextInputValue('regras_inatividade');
+        } catch (e) {
+            respRegras = 'Sim, li em fivez.gitbook.io/fivez-regras';
+            respInat = 'Ciente do prazo de 3 dias';
+        }
+
+        const confirmado = confirmacoesRegras.get(interaction.user.id) ? "✅ Sim (PV)" : "❌ Não (PV)";
         const nickFormatado = formatarApelido(grupo.tag, nome, idJogo);
 
         const embedStaff = new EmbedBuilder()
             .setTitle('📩 Novo Pedido de Set')
             .setColor('#F1C40F')
             .addFields(
-                { name: 'Membro', value: `<@${interaction.user.id}>`, inline: true },
+                { name: 'Membro', value: '<@' + interaction.user.id + '>', inline: true },
                 { name: 'Grupo', value: grupo.name, inline: true },
-                { name: 'Confirmou Regras?', value: confirmado },
-                { name: 'Nome | ID no Jogo', value: `${nome} | ${idJogo}` },
+                { name: 'Confirmou Regras PV?', value: confirmado },
+                { name: 'Nome | ID no Jogo', value: nome + ' | ' + idJogo },
                 { name: 'Recrutador', value: recrutador, inline: true },
-                { name: 'Apelido Previsto', value: `${nickFormatado}` }
+                { name: '📖 Leu Regras FiveZ?', value: respRegras || 'Sim (fivez.gitbook.io/fivez-regras)' },
+                { name: '⚠️ Anti-Jogo / Inatividade?', value: respInat || 'Sim, ciente' },
+                { name: 'Apelido Previsto', value: nickFormatado }
             )
             .setFooter({ text: CONFIG.footer });
 
         const botoes = new ActionRowBuilder().addComponents(
-            new ButtonBuilder().setCustomId(`aprovar_${interaction.user.id}_${roleId}`).setLabel('Aprovar').setStyle(ButtonStyle.Success),
-            new ButtonBuilder().setCustomId(`recusar_${interaction.user.id}`).setLabel('Recusar').setStyle(ButtonStyle.Danger)
+            new ButtonBuilder().setCustomId('aprovar_' + interaction.user.id + '_' + roleId).setLabel('Aprovar').setStyle(ButtonStyle.Success),
+            new ButtonBuilder().setCustomId('recusar_' + interaction.user.id).setLabel('Recusar').setStyle(ButtonStyle.Danger)
         );
 
         const canalAprov = client.channels.cache.get(CONFIG.canalAprovacaoId);
         if (canalAprov && canalAprov.isTextBased()) await canalAprov.send({ embeds: [embedStaff], components: [botoes] });
 
-        return interaction.reply({ content: `✅ Pedido enviado! Apelido: ${nickFormatado}`, ephemeral: true });
+        return interaction.reply({ content: '✅ Pedido enviado! Apelido: ' + nickFormatado, ephemeral: true });
     }
 
     if (interaction.isButton() && (interaction.customId.startsWith('aprovar_') || interaction.customId.startsWith('recusar_'))) {
@@ -400,12 +409,12 @@ client.on(Events.InteractionCreate, async (interaction) => {
                 }
             }
 
-            await interaction.message.edit({ content: `✅ Aprovado por <@${interaction.user.id}>`, components: [] });
+            await interaction.message.edit({ content: '✅ Aprovado por <@' + interaction.user.id + '>', components: [] });
             return interaction.reply({ content: "Membro aprovado com sucesso!", ephemeral: true });
         }
 
         if (action === 'recusar') {
-            await interaction.message.edit({ content: `❌ Recusado por <@${interaction.user.id}>`, components: [] });
+            await interaction.message.edit({ content: '❌ Recusado por <@' + interaction.user.id + '>', components: [] });
             return interaction.reply({ content: "Membro recusado!", ephemeral: true });
         }
     }
