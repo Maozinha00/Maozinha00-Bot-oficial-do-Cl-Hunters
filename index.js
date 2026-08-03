@@ -65,8 +65,15 @@ const CONFIG = {
     "cargoCidadaoGeralId": "123456789012345691",
     "cargoNaoRegistradoId": "123456789012345692",
     "prazoRegistroDias": 3,
+    "autoReprovarRespostasInvalidas": true,
     "grupos": [
         {
+            "id": "grupo_cidadao_cincoz",
+            "name": "Cidadão FiveZ",
+            "roleId": "1528075981078663259",
+            "tag": "[Cidadão]",
+            "description": "Nome temporário antes de ser aprovado",
+            "emoji": "🏙️"
         },
         {
             "id": "grupo_hunters_recruta",
@@ -123,6 +130,27 @@ const client = new Client({
 });
 
 const confirmacoesRegras = new Map();
+
+// Helper para validar respostas das perguntas do formulário
+function eRespostaValida(texto) {
+    if (!texto || typeof texto !== 'string') return false;
+    const limpo = texto.trim().toLowerCase();
+    
+    if (limpo.length < 3) return false;
+    
+    const invalidas = [
+        '.', ',', '..', '...', '....', '?', '!', '-', 'a', 'x', 'n', 'no',
+        'nao', 'não', 'nao sei', 'não sei', 'num sei', 'nem sei', 'sei nao', 'sei não',
+        'sei la', 'sei lá', 'slk', 'fodase', 'foda-se', 'nada', 'nenhum', 'nenhuma',
+        'qualquer', 'qualquer coisa', 'nao li', 'não li', 'nao sei de nada', 'recuso',
+        'depois', 'pular', 'so sim', 'so nao', 'sla', 'slam', 'saber nao'
+    ];
+
+    if (invalidas.includes(limpo)) return false;
+    if (/^[.,!?;:\-_\s]+$/.test(limpo)) return false;
+
+    return true;
+}
 
 // Helper para formatar apelido (|Tag| Nome | ID)
 function formatarApelido(tag, nome, id) {
@@ -225,16 +253,35 @@ client.on(Events.InteractionCreate, async (interaction) => {
     }
 
     if (interaction.isButton() && interaction.customId === 'btn_iniciar_registro') {
-        // CORRIGIDO: Usando CONFIG.grupos em vez de currentConfig.grupos
+        const gruposValidos = (CONFIG.grupos || []).filter(g => g && (g.roleId || g.id));
+        
+        if (gruposValidos.length === 0) {
+            return interaction.reply({ content: "❌ Nenhum grupo configurado no sistema.", ephemeral: true });
+        }
+
+        const options = gruposValidos.map(g => {
+            const roleIdStr = String(g.roleId || g.id || 'cargo_padrao');
+            const nameStr = String(g.name || 'Grupo');
+            const tagStr = String(g.tag || '');
+            const descStr = String(g.description || ("Tag " + tagStr)).trim();
+
+            const opt = {
+                label: (nameStr + " " + tagStr).trim().substring(0, 100) || 'Grupo',
+                value: roleIdStr,
+                description: descStr.substring(0, 50) || 'Selecione este grupo'
+            };
+
+            if (g.emoji && typeof g.emoji === 'string' && g.emoji.trim() !== '') {
+                opt.emoji = g.emoji.trim();
+            }
+
+            return opt;
+        });
+
         const selectMenu = new StringSelectMenuBuilder()
             .setCustomId('select_grupo')
             .setPlaceholder('Selecione sua Tag / Grupo...')
-            .addOptions((CONFIG.grupos || []).map(g => ({
-                label: (g.name + " " + g.tag).substring(0, 100),
-                value: g.roleId,
-                emoji: g.emoji || '🎯',
-                description: (g.description || ("Tag " + g.tag)).substring(0, 50)
-            })));
+            .addOptions(options);
 
         return interaction.reply({ 
             content: "👇 **Selecione a sua Tag / Grupo abaixo para abrir o formulário de cidadania:**", 
@@ -305,8 +352,48 @@ client.on(Events.InteractionCreate, async (interaction) => {
             respRegras = interaction.fields.getTextInputValue('regras_fivez');
             respInat = interaction.fields.getTextInputValue('regras_inatividade');
         } catch (e) {
-            respRegras = 'Sim, li em fivez.gitbook.io/fivez-regras';
-            respInat = 'Ciente do prazo de 3 dias';
+            respRegras = '';
+            respInat = '';
+        }
+
+        // AUTO-REPROVAÇÃO SE AS RESPOSTAS FOREM INVÁLIDAS (ex: ".", "não sei", etc.)
+        const regrasValidas = eRespostaValida(respRegras);
+        const inatividadeValida = eRespostaValida(respInat);
+
+        if (!regrasValidas || !inatividadeValida) {
+            const motivoText = !regrasValidas && !inatividadeValida 
+                ? "Respostas das 2 perguntas foram consideradas inválidas (ex: '.', 'não sei' ou muito curtas)."
+                : !regrasValidas 
+                    ? "Resposta sobre as Regras foi considerada inválida (ex: '.', 'não sei' ou resposta fora do padrão)."
+                    : "Resposta sobre Anti-Jogo / Inatividade foi considerada inválida (ex: '.', 'não sei' ou muito curta).";
+
+            const embedReprovado = new EmbedBuilder()
+                .setTitle('❌ Registro REPROVADO Automaticamente!')
+                .setColor('#E74C3C')
+                .setDescription(`Olá <@${interaction.user.id}>, seu formulário de registro foi **REPROVADO AUTOMATICAMENTE** por conter respostas incorretas ou fora do acordo.\n\n⚠️ **Motivo:** ${motivoText}\n\n📖 **O que fazer?**\n1. Leia atentamente as regras em: ${CONFIG.regrasLink || 'https://fivez.gitbook.io/fivez-regras'}\n2. Acesse novamente o canal <#${CONFIG.canalRegistroId}> e preencha o formulário respondendo corretamente.`)
+                .setFooter({ text: CONFIG.footer });
+
+            await interaction.reply({ embeds: [embedReprovado], ephemeral: true });
+
+            // Envia log para o canal de aprovação notificando a Staff sobre a reprovação automática
+            const canalAprov = client.channels.cache.get(CONFIG.canalAprovacaoId);
+            if (canalAprov && canalAprov.isTextBased()) {
+                const embedLogStaff = new EmbedBuilder()
+                    .setTitle('🚫 Registro Reprovado Automático (Respostas Inválidas)')
+                    .setColor('#95A5A6')
+                    .addFields(
+                        { name: 'Membro', value: `<@${interaction.user.id}>`, inline: true },
+                        { name: 'Grupo Escolhido', value: grupo.name, inline: true },
+                        { name: 'Nome | ID', value: `${nome} | ${idJogo}`, inline: true },
+                        { name: 'Resposta Regras FiveZ', value: respRegras || '*(vazio)*' },
+                        { name: 'Resposta Anti-Jogo/Inatividade', value: respInat || '*(vazio)*' },
+                        { name: 'Status', value: '❌ **REPROVADO AUTOMATICAMENTE PELO SISTEMA**' }
+                    )
+                    .setFooter({ text: CONFIG.footer });
+
+                await canalAprov.send({ embeds: [embedLogStaff] });
+            }
+            return;
         }
 
         const confirmado = confirmacoesRegras.get(interaction.user.id) ? "✅ Sim (PV)" : "❌ Não (PV)";
