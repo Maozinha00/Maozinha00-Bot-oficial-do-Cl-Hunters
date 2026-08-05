@@ -180,8 +180,9 @@ async function enviarRegrasPV(user) {
     const embedPV = new EmbedBuilder()
         .setColor(CONFIG.embedColor || "#2ECC71")
         .setTitle("📜 REGRAS OBRIGATÓRIAS - CLÃ HUNTERS & FAMÍLIA SOUZA")
-        .setAuthor({ name: CONFIG.authorName || '👑 FAMÍLIA SOUZA INFINITA 👑', iconURL: CONFIG.botAvatarUrl })
-        .setThumbnail(CONFIG.thumbnailUrl || CONFIG.botAvatarUrl || "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=300&q=80")
+        .setAuthor({ name: CONFIG.authorName || '👑 FAMÍLIA SOUZA INFINITA 👑', iconURL: CONFIG.botAvatarUrl || "https://i.imgur.com/B21O3Ok.gif" })
+        .setThumbnail(CONFIG.thumbnailUrl || CONFIG.botAvatarUrl || "https://i.imgur.com/B21O3Ok.gif")
+        .setImage(CONFIG.imageUrl || "https://i.imgur.com/B21O3Ok.gif")
         .setDescription("Olá <@" + user.id + ">!\n\n" + CONFIG.regrasTexto + "\n\n📖 **Livro Oficial de Regras FiveZ:** " + (CONFIG.regrasLink || "https://fivez.gitbook.io/fivez-regras") + "\n\n**Confirme a leitura no botão abaixo:**")
         .setFooter({ text: CONFIG.footer });
 
@@ -431,8 +432,8 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
         const embedStaff = new EmbedBuilder()
             .setTitle('📩 Novo Pedido de Set')
-            .setAuthor({ name: CONFIG.authorName || '👑 FAMÍLIA SOUZA INFINITA 👑', iconURL: CONFIG.botAvatarUrl })
-            .setThumbnail(CONFIG.thumbnailUrl || CONFIG.botAvatarUrl || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=300&q=80')
+            .setAuthor({ name: CONFIG.authorName || '👑 FAMÍLIA SOUZA INFINITA 👑', iconURL: CONFIG.botAvatarUrl || "https://i.imgur.com/B21O3Ok.gif" })
+            .setThumbnail(CONFIG.thumbnailUrl || CONFIG.botAvatarUrl || 'https://i.imgur.com/B21O3Ok.gif')
             .setColor('#F1C40F')
             .addFields(
                 { name: 'Membro', value: `<@${interaction.user.id}>`, inline: true },
