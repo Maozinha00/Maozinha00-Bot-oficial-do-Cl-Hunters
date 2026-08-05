@@ -230,6 +230,9 @@ client.on(Events.MessageCreate, async (message) => {
         const embed = new EmbedBuilder()
             .setColor(CONFIG.embedColor)
             .setTitle(CONFIG.tituloPainel)
+            .setAuthor({ name: CONFIG.authorName || '👑 FAMÍLIA SOUZA INFINITA 👑', iconURL: CONFIG.botAvatarUrl || "https://i.imgur.com/B21O3Ok.gif" })
+            .setThumbnail(CONFIG.thumbnailUrl || CONFIG.botAvatarUrl || "https://i.imgur.com/B21O3Ok.gif")
+            .setImage(CONFIG.imageUrl || "https://i.imgur.com/B21O3Ok.gif")
             .setDescription(CONFIG.descricaoPainel)
             .setFooter({ text: CONFIG.footer });
 
@@ -252,6 +255,9 @@ client.on(Events.MessageCreate, async (message) => {
         const embedAusencia = new EmbedBuilder()
             .setColor(CONFIG.embedColorAusencia || "#E67E22")
             .setTitle(CONFIG.tituloPainelAusencia || "🌴 Painel de Registro de Ausência")
+            .setAuthor({ name: CONFIG.authorName || '👑 FAMÍLIA SOUZA INFINITA 👑', iconURL: CONFIG.botAvatarUrl || "https://i.imgur.com/B21O3Ok.gif" })
+            .setThumbnail(CONFIG.thumbnailUrl || CONFIG.botAvatarUrl || "https://i.imgur.com/B21O3Ok.gif")
+            .setImage(CONFIG.imageUrl || "https://i.imgur.com/B21O3Ok.gif")
             .setDescription(CONFIG.descricaoPainelAusencia || "Preencha sua justificativa de ausência.")
             .setFooter({ text: CONFIG.footer });
 
