@@ -1,11 +1,3 @@
-/**
- * ============================================================================
- * HUNTERS BOT! - BOT OFICIAL DE ENTRADA, SAÍDA, REGISTRO & AUSÊNCIAS
- * FAMÍLIA SOUZA & CLÃ HUNTERS
- * DISCORD.JS V14 - ES MODULES (import)
- * ============================================================================
- */
-
 import express from 'express';
 import {
     Client,
@@ -26,7 +18,7 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const TOKEN = process.env.DISCORD_TOKEN || process.env.TOKEN || "OTk4ODM3MTIxOTkwMTIzNDU2.GzX123.DiscordBotTokenOriginal";
+const TOKEN = process.env.DISCORD_TOKEN || process.env.TOKEN || "SEU_DISCORD_TOKEN_AQUI";
 const PORT = process.env.PORT || 3000;
 
 const CONFIG = {
@@ -36,153 +28,58 @@ const CONFIG = {
     "comandoPainelAusencia": "!painelausencia",
     "botName": "HUNTERS BOT!",
     "botAvatarUrl": "https://i.imgur.com/0iMBT5C.jpeg",
-    "canalRegistroId": "123456789012345679",
-    "canalAprovacaoId": "1515448473246498866",
-    "canalLogsId": "1515448473246498866",
+    "canalRegistroId": "123456789012345678",
+    "canalAprovacaoId": "123456789012345678",
+    "canalLogsId": "123456789012345678",
     "canalEntradaSaidaId": "123456789012345678",
-    "canalAusenciaId": "1531070382365343774",
-    "canalAusenciaLogsId": "1531670383483158700",
-    "cargosAdminsAprovadores": [
-        "1515125822795546715",
-        "123456789012345678",
-        "987654321098765432"
-],
-    "embedColor": "#2ECC71",
+    "canalAusenciaId": "123456789012345678",
+    "canalAusenciaLogsId": "123456789012345678",
+    "cargosAdminsAprovadores": ["123456789012345678"],
+    "embedColor": "#1ABC9C",
     "embedColorAusencia": "#E67E22",
     "embedColorSaida": "#E74C3C",
-    "authorName": "👑 Família Souza 👑",
+    "authorName": "👑 HUNTERS & FAMÍLIA SOUZA 👑",
     "authorSub": "🏡 Família Souza — Entrada & Registro",
-    "footer": "Família Souza • Entrada - Boas-vindas",
-    "footerSaida": "Família Souza • Saída - Registrado",
-    "tituloPainel": `Seja bem-vindo à nossa Comunidade!`,
-    "descricaoPainel": `📢 **AVISO IMPORTANTE PARA TODOS (@everyone):**
-> ⚠️ **PRAZO LIMITE DE REGISTRO:** Todo membro que entrar no servidor tem um prazo máximo de **3 dias** para realizar o registro de cidadania.
-> 🚫 Se você passar de **3 dias** no servidor sem realizar o seu registro (ficando sem os cargos dos grupos), você será **kickado automaticamente** pelo sistema!
-
-Para desbloquear todos os canais do servidor e registrar sua cidadania, selecione seu grupo abaixo.
-
-🎁 **Benefícios ao registrar:**
-> ✅ **Cargo do seu Grupo escolhido**
-> 🏷️ **Apelido Atualizado:** Com a tag da facção, seu Nome e ID
-> 🔓 **Liberação imediata** dos canais e categorias do servidor
-
-👇 *Clique no botão abaixo, escolha seu grupo e preencha o formulário!*`,
-    "tituloPainelAusencia": `🌴 Painel de Registro de Ausência`,
-    "descricaoPainelAusencia": `📢 **REGISTRO DE AUSÊNCIA & FOLGA**
-> 🌴 Pretende ficar ausente das atividades ou ações no servidor?
-> ⚠️ Registre sua ausência com motivo e prazo de retorno para avisar a administração e evitar ser removido por inatividade.
-
-👇 *Clique no botão abaixo para preencher sua justificativa!*`,
-    "regrasTexto": `# 📜 REGRAS OFICIAIS • CLÃ HUNTERS
-
-<@&1527848364496912404>
-<@&1523277774436171796>
-<@&1528075981078663259>
-<@&1515125826780135485>
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-## ⚔️ 1. Respeito
-Respeite todos os membros do clã, aliados, adversários e a liderança. Qualquer falta de respeito poderá resultar em punição.
-
-## 👑 2. Respeite a Hierarquia
-As decisões da liderança devem ser respeitadas. Caso tenha dúvidas ou problemas, procure um superior.
-
-## 🦺 3. Uniforme Obrigatório
-É obrigatório utilizar o **Preset Hunters** durante:
-bind keyboard "6" "preset Hunters"
-* 🔴 Áreas Vermelhas;
-* 🟡 Áreas Amarelas;
-* ⚔️ Eventos;
-* 💥 Horários de PVP.
-
-## 📻 4. Rádio Oficial
-É obrigatório permanecer na **rádio 633** durante todas as atividades do Clã.
-🛒 Para vendas, utilize exclusivamente a **rádio 635**.
-
-## 🐺 5. Prioridade ao Clã
-Sempre que houver **QRR**, defesa do território ou convocação da liderança, o **Clã Hunters** deve ser sua prioridade.
-
-## 🚫 6. Não Prejudique o Clã
-É proibido realizar qualquer ação que possa gerar punições ao Clã ou prejudicar sua reputação.
-
-## 🤝 7. Trabalho em Equipe
-Ajude seus companheiros sempre que possível. O sucesso do Clã depende da união de todos.
-
-## 📦 8. Estoque do Clã
-Todo aço referente às metas obrigatórias deve ser depositado no estoque do Clã e registrado corretamente no painel.
-
-## 📅 9. Regra de Ausência
-Caso precise se ausentar, é **obrigatório informar a liderança** e registrar sua ausência.
-❌ Membros que ficarem **3 dias consecutivos sem entrar na cidade e sem justificar a ausência** serão **retirados do painel do Clã Hunters**.
-
-## 💬 10. Comunicação
-Mantenha uma comunicação organizada nas rádios e no Discord.
-
-## ⚠️ 11. Punições
-O descumprimento de qualquer regra poderá resultar em Advertência, Suspensão, Rebaixamento ou Expulsão.
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-> 🐺 **DISCIPLINA • RESPEITO • LEALDADE • UNIÃO**
-> **Quem veste o Preset Hunters representa todo o Clã. Honre a camisa e fortaleça a nossa família!** ⚔️🔥`,
-    "regrasLink": "https://fivez.gitbook.io/fivez-regras",
+    "footer": "Família Souza • Sistema de Registro Automático SIGIO",
+    "footerSaida": "Família Souza • Notificação de Saída de Membro",
+    "tituloPainel": "📋 Painel de Registro — Família Souza & Clã Hunters",
+    "descricaoPainel": "Seja muito bem-vindo(a) à nossa comunidade!\n\nPara iniciar seu processo de integração, escolha no menu abaixo o seu grupo/função e preencha o formulário de registro.",
+    "tituloPainelAusencia": "🌴 Painel de Registro de Ausência",
+    "descricaoPainelAusencia": "Caso precise se ausentar da cidade/servidor por alguns dias, registe sua ausência pelo formulário abaixo para evitar advertências.",
+    "regrasTexto": "⚠️ **REGRAS GERAIS DA FAMÍLIA & CLÃ HUNTERS:**\n\n1. Respeite todos os membros e a liderança acima de tudo.\n2. É proibido RDM, VDM, Anti-Amor à Vida e Anti-Jogo na cidade.\n3. Mantenha o apelido/nick do Discord no padrão: `[TAG] Nome | ID`.\n4. Em caso de ausência por mais de 3 dias, obrigatoriamente registre no canal de ausência.",
+    "regrasLink": "https://discord.com",
     "perguntaRegrasCincoZ": "O que é RDM, VDM e Amor à Vida na Cidade?",
     "perguntaInatividadecincoZ": "Ciente de SafeZone, Anti-Jogo e Inatividade?",
-    "cargoCidadaoGeralId": "123456789012345691",
-    "cargoNaoRegistradoId": "123456789012345692",
+    "cargoCidadaoGeralId": "123456789012345678",
+    "cargoNaoRegistradoId": "123456789012345678",
     "prazoRegistroDias": 3,
     "autoReprovarRespostasInvalidas": true,
     "grupos": [
         {
-                "id": "grupo_hunters_membro",
-                "name": "Membro Hunters",
-                "roleId": "1527848364496912404",
-                "tag": "[Hunters]",
-                "description": "Membro oficial do Clã Hunters",
-                "emoji": "🐺"
+            "id": "grupo_sub_lideres",
+            "name": "Sub-Líderes",
+            "tag": "[Sub-Líder]",
+            "roleId": "123456789012345678",
+            "emoji": "👑",
+            "description": "Formulário de verificação para Sub-Liderança."
         },
         {
-                "id": "grupo_hunters_recruta",
-                "name": "Recruta Hunters",
-                "roleId": "1523277774436171796",
-                "tag": "[Recruta]",
-                "description": "Cargo de recruta em teste",
-                "emoji": "🎯"
+            "id": "grupo_membros_fixos",
+            "name": "Membros Fixos",
+            "tag": "[Membro]",
+            "roleId": "123456789012345678",
+            "emoji": "⚔️",
+            "description": "Formulário de registro oficial de Membro Fixo."
         },
         {
-                "id": "grupo_souza_membro",
-                "name": "Família Souza",
-                "roleId": "1515125826780135485",
-                "tag": "[Souza]",
-                "description": "Membro da Família Souza",
-                "emoji": "⚜️"
-        },
-        {
-                "id": "grupo_cidadao_cincoz",
-                "name": "Cidadão FiveZ",
-                "roleId": "1528075981078663259",
-                "tag": "[Cidadão]",
-                "description": "Nome temporário antes de ser aprovado",
-                "emoji": "🏙️"
-        },
-        {
-                "id": "grupo_aliado",
-                "name": "Aliado",
-                "roleId": "123456789012345689",
-                "tag": "[Aliado]",
-                "description": "Amigos que estão sempre aqui",
-                "emoji": "🤝"
-        },
-        {
-                "id": "grupo_comprador",
-                "name": "Comprador",
-                "roleId": "123456789012345686",
-                "tag": "[Comprador]",
-                "description": "Comprador de armas",
-                "emoji": "🛒"
+            "id": "grupo_recrutas",
+            "name": "Recrutas",
+            "tag": "[Recruta]",
+            "roleId": "123456789012345678",
+            "emoji": "🔰",
+            "description": "Formulário de teste e registro para novos Recrutas."
         }
-]
+    ]
 };
 
 const client = new Client({
@@ -190,130 +87,117 @@ const client = new Client({
         GatewayIntentBits.Guilds,
         GatewayIntentBits.GuildMembers,
         GatewayIntentBits.GuildMessages,
-        GatewayIntentBits.MessageContent,
-        GatewayIntentBits.DirectMessages
+        GatewayIntentBits.MessageContent
     ],
-    partials: [Partials.Channel, Partials.Message, Partials.GuildMember]
+    partials: [Partials.Message, Partials.Channel, Partials.GuildMember]
 });
 
-// Validation function against quick troll answers (e.g., '.', 'não sei')
-function eRespostaValida(texto) {
-    if (!texto || typeof texto !== 'string') return false;
-    const limpo = texto.trim().toLowerCase();
-    if (limpo.length < 5) return false;
-    
-    const invalidas = [
-        '.', ',', '..', '...', '?', '!', '-', 'a', 'x', 'n', 'no',
-        'nao', 'não', 'nao sei', 'não sei', 'num sei', 'nem sei', 'sei nao', 'sei não',
-        'sei la', 'sei lá', 'slk', 'fodase', 'foda-se', 'nada', 'nenhum', 'qualquer'
-    ];
-    if (invalidas.includes(limpo)) return false;
-    if (/^[.,!?;:\-_\s]+$/.test(limpo)) return false;
-    return true;
-}
+// Cache local de confirmações
+const confirmacoesRegras = new Map();
 
 function formatarApelido(tag, nome, id) {
-    let nick = (tag + " " + nome + " | " + id).trim();
-    return nick.length > 32 ? nick.substring(0, 29) + "..." : nick;
+    const cleanTag = tag ? tag.trim() : "";
+    const cleanNome = nome ? nome.trim() : "Membro";
+    const cleanId = id ? id.trim() : "00";
+    return `${cleanTag} ${cleanNome} | ${cleanId}`.substring(0, 32);
 }
 
-// ----------------------------------------------------------------------------
-// EVENTO: Entrada de Membro (GuildMemberAdd) - Mensagem SIGIO Visual
-// ----------------------------------------------------------------------------
+function eRespostaValida(resposta) {
+    if (!resposta || typeof resposta !== "string") return false;
+    const txt = resposta.trim().toLowerCase();
+    if (txt.length < 5) return false;
+    const troll = ["nao sei", "não sei", "sei la", "sei lá", "sla", ".", "..", "...", "rdm", "vdm", "nada", "qualquer", "sim", "nao", "não"];
+    return !troll.includes(txt);
+}
+
+client.once(Events.ClientReady, (c) => {
+    console.log(`✅ Bot ${c.user.tag} iniciado com sucesso!`);
+});
+
+// EVENTO: Entrada de Novo Membro
 client.on(Events.GuildMemberAdd, async (member) => {
-    const canal = member.guild.channels.cache.get(CONFIG.canalEntradaSaidaId);
-    if (!canal || !canal.isTextBased()) return;
+    try {
+        if (CONFIG.cargoNaoRegistradoId && CONFIG.cargoNaoRegistradoId !== "123456789012345678") {
+            await member.roles.add(CONFIG.cargoNaoRegistradoId).catch(() => {});
+        }
 
-    const membros = member.guild.memberCount;
-    const mainText = `Olá {user}, você acaba de entrar em {organizacao}.
-Estamos felices em ter você por aqui.`
-        .replace(/\{user\}/g, `<@${member.user.id}>`)
-        .replace(/\{username\}/g, member.user.username)
-        .replace(/\{organizacao\}/g, "Família Souza")
-        .replace(/\{servidor\}/g, member.guild.name)
-        .replace(/\{membros\}/g, membros);
+        const channel = member.guild.channels.cache.get(CONFIG.canalEntradaSaidaId) || member.guild.channels.cache.get(CONFIG.canalRegistroId);
+        if (channel && channel.isTextBased()) {
+            const embed = new EmbedBuilder()
+                .setTitle(`🎉 Bem-vindo(a) à Família Souza & Clã Hunters!`)
+                .setAuthor({ name: CONFIG.authorName, iconURL: CONFIG.botAvatarUrl })
+                .setThumbnail(member.user.displayAvatarURL({ dynamic: true }))
+                .setColor(CONFIG.embedColor)
+                .setDescription(
+                    `Olá <@${member.id}>!\n\n` +
+                    `Seja muito bem-vindo(a) ao nosso servidor. Você tem até **${CONFIG.prazoRegistroDias} dias** para realizar seu registro em <#${CONFIG.canalRegistroId}>.\n\n` +
+                    `💡 Selecione o seu grupo no painel para abrir seu formulário.`
+                )
+                .setFooter({ text: CONFIG.footer });
 
-    const subText = "Acesse o canal para acompanhar informações, solicitações e recursos da organização.";
-
-    const content = `👋 **Seja bem-vindo(a)!**\n\n${mainText}\n${subText}`;
-
-    const embed = new EmbedBuilder()
-        .setColor("#2ECC71")
-        .setTitle("👥 Boas-vindas")
-        .addFields(
-            { name: '', value: `<@${member.user.id}>`, inline: false },
-            { name: 'Organização', value: "Família Souza", inline: true },
-            { name: 'Servidor', value: "Família Souza", inline: true },
-            { name: 'Membros', value: `${membros}`, inline: true }
-        )
-        .setImage("https://i.imgur.com/B21O3Ok.gif")
-        .setFooter({ text: CONFIG.footer });
-
-    const btn = new ButtonBuilder()
-        .setLabel("Acessar Regras")
-        .setStyle(ButtonStyle.Link)
-        .setURL("https://fivez.gitbook.io/fivez-regras");
-    if ("🔑") {
-        btn.setEmoji("🔑");
+            await channel.send({ content: `<@${member.id}>`, embeds: [embed] });
+        }
+    } catch (err) {
+        console.error("Erro no evento GuildMemberAdd:", err);
     }
-
-    const row = new ActionRowBuilder().addComponents(btn);
-
-    await canal.send({ content, embeds: [embed], components: [row] });
 });
 
-// ----------------------------------------------------------------------------
-// EVENTO: Saída de Membro (GuildMemberRemove) - Mensagem SIGIO
-// ----------------------------------------------------------------------------
+// EVENTO: Saída de Membro
 client.on(Events.GuildMemberRemove, async (member) => {
-    const canal = member.guild.channels.cache.get(CONFIG.canalEntradaSaidaId);
-    if (!canal || !canal.isTextBased()) return;
+    try {
+        const channel = member.guild.channels.cache.get(CONFIG.canalEntradaSaidaId) || member.guild.channels.cache.get(CONFIG.canalLogsId);
+        if (channel && channel.isTextBased()) {
+            const embed = new EmbedBuilder()
+                .setTitle(`🚪 Membro Saiu do Servidor`)
+                .setColor(CONFIG.embedColorSaida)
+                .setDescription(`O membro **${member.user.tag}** (${member.id}) saiu do servidor.`)
+                .setFooter({ text: CONFIG.footerSaida });
 
-    const mainText = `O membro {user} acabou de sair de {organizacao}.`
-        .replace(/\{user\}/g, `**${member.user.username}**`)
-        .replace(/\{organizacao\}/g, "Família Souza");
-
-    const content = `👋 **Saída de Membro**\n\n${mainText}\nEsperamos que tenha uma boa jornada. As permissões no servidor foram revogadas.`;
-
-    const embed = new EmbedBuilder()
-        .setColor("#E74C3C")
-        .setTitle("🚪 Saída Registrada")
-        .addFields(
-            { name: 'Membro Saiu', value: `**${member.user.username}** (${member.user.id})`, inline: false },
-            { name: 'Organização', value: "Família Souza", inline: true },
-            { name: 'Servidor', value: "Família Souza", inline: true }
-        )
-        .setImage("https://i.imgur.com/B21O3Ok.gif")
-        .setFooter({ text: CONFIG.footerSaida });
-
-    await canal.send({ content, embeds: [embed] });
+            await channel.send({ embeds: [embed] });
+        }
+    } catch (err) {
+        console.error("Erro no evento GuildMemberRemove:", err);
+    }
 });
 
-// ----------------------------------------------------------------------------
-// EVENTO: Comandos de Mensagem (!painelregistro / !painelausencia)
-// ----------------------------------------------------------------------------
+// EVENTO: Comandos do Bot
 client.on(Events.MessageCreate, async (message) => {
-    if (message.author.bot) return;
+    if (message.author.bot || !message.guild) return;
 
-    const contentLower = message.content.trim().toLowerCase();
-    const cmdRegistro = CONFIG.comandoPainelRegistro.toLowerCase();
-    const cmdAusencia = CONFIG.comandoPainelAusencia.toLowerCase();
-
-    // Comando do Painel de Registro
-    if (contentLower === cmdRegistro || contentLower.startsWith(cmdRegistro + ' ')) {
-        const isAdmin = message.member?.permissions.has(PermissionsBitField.Flags.Administrator) ||
-            message.member?.roles.cache.some(r => CONFIG.cargosAdminsAprovadores.includes(r.id));
-
-        if (!isAdmin) {
+    // Comandos de Painéis (Staff)
+    if (message.content.startsWith(CONFIG.comandoPainelRegistro) || message.content.startsWith("!painel")) {
+        if (!message.member.permissions.has(PermissionsBitField.Flags.Administrator)) {
             return message.reply("❌ Apenas administradores podem enviar este painel.");
         }
 
-        const options = CONFIG.grupos.map(g => ({
-            label: g.name,
-            description: g.description,
-            value: g.id,
-            emoji: g.emoji
-        }));
+        let options = (CONFIG.grupos || []).map(g => {
+            const nameStr = (g.name || "Grupo").trim();
+            const tagStr = (g.tag || "").trim();
+            const label = (nameStr + (tagStr ? " " + tagStr : "")).substring(0, 100);
+            const description = (g.description || ("Função " + nameStr)).trim().substring(0, 100);
+            const value = String(g.id || g.roleId || "grupo_padrao").trim();
+
+            const opt = {
+                label: label || "Grupo",
+                description: description || "Selecione esta opção",
+                value: value
+            };
+
+            if (g.emoji && typeof g.emoji === "string" && g.emoji.trim().length > 0) {
+                opt.emoji = g.emoji.trim();
+            }
+
+            return opt;
+        });
+
+        if (options.length === 0) {
+            options = [{
+                label: "Cidadão / Registre-se",
+                description: "Clique para preencher seu formulário",
+                value: "grupo_cidadao",
+                emoji: "🏙️"
+            }];
+        }
 
         const selectMenu = new StringSelectMenuBuilder()
             .setCustomId("selecionar_grupo_registro")
@@ -323,53 +207,340 @@ client.on(Events.MessageCreate, async (message) => {
         const row = new ActionRowBuilder().addComponents(selectMenu);
 
         const embed = new EmbedBuilder()
-            .setColor(CONFIG.embedColor)
-            .setAuthor({ name: CONFIG.authorName, iconURL: CONFIG.botAvatarUrl })
-            .setTitle("📝 " + CONFIG.tituloPainel)
+            .setTitle(CONFIG.tituloPainel)
             .setDescription(CONFIG.descricaoPainel)
-            .setImage("https://i.imgur.com/B21O3Ok.gif")
+            .setColor(CONFIG.embedColor)
             .setFooter({ text: CONFIG.footer });
 
         await message.channel.send({ embeds: [embed], components: [row] });
-        if (message.deletable) await message.delete().catch(() => {});
+        await message.delete().catch(() => {});
     }
 
-    // Comando do Painel de Ausência
-    if (contentLower === cmdAusencia || contentLower.startsWith(cmdAusencia + ' ')) {
-        const isAdmin = message.member?.permissions.has(PermissionsBitField.Flags.Administrator) ||
-            message.member?.roles.cache.some(r => CONFIG.cargosAdminsAprovadores.includes(r.id));
-
-        if (!isAdmin) {
+    if (message.content.startsWith(CONFIG.comandoPainelAusencia)) {
+        if (!message.member.permissions.has(PermissionsBitField.Flags.Administrator)) {
             return message.reply("❌ Apenas administradores podem enviar este painel.");
         }
 
         const btnAusencia = new ButtonBuilder()
             .setCustomId("abrir_modal_ausencia")
-            .setLabel("Registrar Ausência / Folga")
+            .setLabel("Registrar Ausência")
             .setEmoji("🌴")
-            .setStyle(ButtonStyle.Warning);
+            .setStyle(ButtonStyle.Primary);
 
         const row = new ActionRowBuilder().addComponents(btnAusencia);
 
         const embed = new EmbedBuilder()
-            .setColor(CONFIG.embedColorAusencia)
-            .setAuthor({ name: CONFIG.authorName, iconURL: CONFIG.botAvatarUrl })
             .setTitle(CONFIG.tituloPainelAusencia)
             .setDescription(CONFIG.descricaoPainelAusencia)
-            .setFooter({ text: "Família Souza • Sistema de Ausências" });
+            .setColor(CONFIG.embedColorAusencia)
+            .setFooter({ text: CONFIG.footer });
 
         await message.channel.send({ embeds: [embed], components: [row] });
-        if (message.deletable) await message.delete().catch(() => {});
+        await message.delete().catch(() => {});
+    }
+});
+
+// EVENTO: Interações (Select Menu, Botões, Modais)
+client.on(Events.InteractionCreate, async (interaction) => {
+    try {
+        // 1. SELECT MENU DE SELEÇÃO DE GRUPOS
+        if (interaction.isStringSelectMenu() && (interaction.customId === "selecionar_grupo_registro" || interaction.customId === "select_grupo")) {
+            const roleIdOrGroupId = interaction.values[0];
+            const grupo = (CONFIG.grupos || []).find(g => g.id === roleIdOrGroupId || g.roleId === roleIdOrGroupId || String(g.id || g.roleId) === roleIdOrGroupId) || {
+                name: "Cidadão",
+                tag: "[Cidadão]",
+                roleId: CONFIG.cargoCidadaoGeralId || "123456789012345678"
+            };
+
+            const targetRoleId = grupo.roleId || grupo.id || "123456789012345678";
+            const cleanRoleId = String(targetRoleId).replace(/[^a-zA-Z0-9_]/g, "").substring(0, 40) || "default";
+
+            const modalTitle = ("Formulário — " + (grupo.name || "Cidadão")).substring(0, 45);
+
+            const modal = new ModalBuilder()
+                .setCustomId("modal_reg_" + cleanRoleId)
+                .setTitle(modalTitle);
+
+            const inputNome = new TextInputBuilder()
+                .setCustomId("nome")
+                .setLabel("Nome no Jogo")
+                .setStyle(TextInputStyle.Short)
+                .setPlaceholder("Ex: Igor Kz")
+                .setRequired(true);
+
+            const inputId = new TextInputBuilder()
+                .setCustomId("id_jogo")
+                .setLabel("ID no Jogo")
+                .setStyle(TextInputStyle.Short)
+                .setPlaceholder("Ex: 24257")
+                .setRequired(true);
+
+            const inputRecrutador = new TextInputBuilder()
+                .setCustomId("recrutador")
+                .setLabel("Quem te recrutou?")
+                .setStyle(TextInputStyle.Short)
+                .setPlaceholder("Ex: Liderança / Kz")
+                .setRequired(true);
+
+            const lblRegras = (CONFIG.perguntaRegrasCincoZ || "O que é RDM, VDM e Amor à Vida?").trim().substring(0, 45) || "Regras da Cidade";
+            const inputRegras = new TextInputBuilder()
+                .setCustomId("regras_fivez")
+                .setLabel(lblRegras)
+                .setStyle(TextInputStyle.Paragraph)
+                .setPlaceholder("Explique com suas palavras (Proibido copiar e colar)".substring(0, 100))
+                .setRequired(true);
+
+            const lblInat = (CONFIG.perguntaInatividadecincoZ || "Ciente de SafeZone, Anti-Jogo e Inatividade?").trim().substring(0, 45) || "Anti-Jogo e Inatividade";
+            const inputInatividade = new TextInputBuilder()
+                .setCustomId("regras_inatividade")
+                .setLabel(lblInat)
+                .setStyle(TextInputStyle.Short)
+                .setPlaceholder("Ciente do prazo máximo e regras da cidade".substring(0, 100))
+                .setRequired(true);
+
+            modal.addComponents(
+                new ActionRowBuilder().addComponents(inputNome),
+                new ActionRowBuilder().addComponents(inputId),
+                new ActionRowBuilder().addComponents(inputRecrutador),
+                new ActionRowBuilder().addComponents(inputRegras),
+                new ActionRowBuilder().addComponents(inputInatividade)
+            );
+
+            return await interaction.showModal(modal);
+        }
+
+        // 2. BOTÃO DO PAINEL DE AUSÊNCIA
+        if (interaction.isButton() && (interaction.customId === "abrir_modal_ausencia" || interaction.customId === "btn_registrar_ausencia")) {
+            const modal = new ModalBuilder()
+                .setCustomId("modal_ausencia")
+                .setTitle("Registro de Ausência");
+
+            const inputMotivo = new TextInputBuilder()
+                .setCustomId("motivo")
+                .setLabel("Motivo da Ausência")
+                .setStyle(TextInputStyle.Paragraph)
+                .setPlaceholder("Descreva o motivo da ausência...")
+                .setRequired(true);
+
+            const inputInicio = new TextInputBuilder()
+                .setCustomId("data_inicio")
+                .setLabel("Data de Início")
+                .setStyle(TextInputStyle.Short)
+                .setPlaceholder("Ex: 06/08/2026")
+                .setRequired(true);
+
+            const inputRetorno = new TextInputBuilder()
+                .setCustomId("previsao_retorno")
+                .setLabel("Previsão de Retorno")
+                .setStyle(TextInputStyle.Short)
+                .setPlaceholder("Ex: 12/08/2026")
+                .setRequired(true);
+
+            modal.addComponents(
+                new ActionRowBuilder().addComponents(inputMotivo),
+                new ActionRowBuilder().addComponents(inputInicio),
+                new ActionRowBuilder().addComponents(inputRetorno)
+            );
+
+            return await interaction.showModal(modal);
+        }
+
+        // 3. ENVIO DO FORMULÁRIO DE REGISTRO
+        if (interaction.isModalSubmit() && interaction.customId.startsWith("modal_reg_")) {
+            const roleIdClean = interaction.customId.replace("modal_reg_", "");
+            const grupo = (CONFIG.grupos || []).find(g => 
+                g.roleId === roleIdClean || 
+                g.id === roleIdClean || 
+                String(g.roleId || g.id).replace(/[^a-zA-Z0-9_]/g, "") === roleIdClean
+            ) || { name: "Cidadão", tag: "[Cidadão]", roleId: roleIdClean };
+
+            const nome = interaction.fields.getTextInputValue("nome");
+            const idJogo = interaction.fields.getTextInputValue("id_jogo");
+            const recrutador = interaction.fields.getTextInputValue("recrutador");
+            const respRegras = interaction.fields.getTextInputValue("regras_fivez");
+            const respInat = interaction.fields.getTextInputValue("regras_inatividade");
+
+            // Filtro Anti-Troll
+            if (CONFIG.autoReprovarRespostasInvalidas) {
+                const regrasOk = eRespostaValida(respRegras);
+                const inatOk = eRespostaValida(respInat);
+
+                if (!regrasOk || !inatOk) {
+                    const motivoText = !regrasOk && !inatOk
+                        ? "Respostas das 2 perguntas foram consideradas inválidas (ex: '.', 'não sei' ou curtas demais)."
+                        : !regrasOk
+                        ? "Resposta sobre RDM/VDM/Amor à Vida foi considerada inválida."
+                        : "Resposta sobre Anti-Jogo / Inatividade foi considerada inválida.";
+
+                    const embedReproved = new EmbedBuilder()
+                        .setTitle("❌ Registro REPROVADO Automaticamente!")
+                        .setColor("#E74C3C")
+                        .setDescription(`Olá <@${interaction.user.id}>, seu formulário foi **REPROVADO AUTOMATICAMENTE** pelo filtro anti-troll.\n\n⚠️ **Motivo:** ${motivoText}\n\n📖 Leia atentamente as regras no canal e tente novamente com a resposta completa!`)
+                        .setFooter({ text: CONFIG.footer });
+
+                    return await interaction.reply({ embeds: [embedReproved], ephemeral: true });
+                }
+            }
+
+            const nickFormatado = formatarApelido(grupo.tag, nome, idJogo);
+
+            // Envia para canal de aprovação da Staff
+            const canalAprov = interaction.guild.channels.cache.get(CONFIG.canalAprovacaoId);
+            if (canalAprov && canalAprov.isTextBased()) {
+                const embedStaff = new EmbedBuilder()
+                    .setTitle("📩 Novo Pedido de Set / Registro")
+                    .setColor("#F1C40F")
+                    .addFields(
+                        { name: "Membro", value: `<@${interaction.user.id}> (${interaction.user.id})`, inline: true },
+                        { name: "Grupo Escolhido", value: `${grupo.name} (${grupo.tag})`, inline: true },
+                        { name: "Nome e ID no Jogo", value: `${nome} | ${idJogo}`, inline: false },
+                        { name: "Recrutador", value: recrutador, inline: true },
+                        { name: "Apelido Formatado", value: nickFormatado, inline: true },
+                        { name: "📖 Resposta Regras", value: respRegras || "*(vazio)*" },
+                        { name: "⚠️ Resposta Anti-Jogo", value: respInat || "*(vazio)*" }
+                    )
+                    .setFooter({ text: CONFIG.footer });
+
+                const targetRoleId = grupo.roleId || grupo.id || roleIdClean;
+                const cleanRoleId = String(targetRoleId).replace(/[^a-zA-Z0-9_]/g, "");
+
+                const rowBtns = new ActionRowBuilder().addComponents(
+                    new ButtonBuilder()
+                        .setCustomId(`aprovar_${interaction.user.id}_${cleanRoleId}`)
+                        .setLabel("Aprovar Set")
+                        .setEmoji("✅")
+                        .setStyle(ButtonStyle.Success),
+                    new ButtonBuilder()
+                        .setCustomId(`recusar_${interaction.user.id}`)
+                        .setLabel("Recusar Set")
+                        .setEmoji("❌")
+                        .setStyle(ButtonStyle.Danger)
+                );
+
+                await canalAprov.send({ embeds: [embedStaff], components: [rowBtns] });
+            }
+
+            return await interaction.reply({
+                content: `✅ Formulário enviado com sucesso para a aprovação da Staff!\n**Apelido previsto:** \`${nickFormatado}\``,
+                ephemeral: true
+            });
+        }
+
+        // 4. SUBMIT DO MODAL DE AUSÊNCIA
+        if (interaction.isModalSubmit() && interaction.customId === "modal_ausencia") {
+            const motivo = interaction.fields.getTextInputValue("motivo");
+            const inicio = interaction.fields.getTextInputValue("data_inicio");
+            const retorno = interaction.fields.getTextInputValue("previsao_retorno");
+
+            const canalAusence = interaction.guild.channels.cache.get(CONFIG.canalAusenciaLogsId) || interaction.guild.channels.cache.get(CONFIG.canalAusenciaId);
+
+            if (canalAusence && canalAusence.isTextBased()) {
+                const embedAus = new EmbedBuilder()
+                    .setTitle("🌴 Registro de Ausência de Membro")
+                    .setColor(CONFIG.embedColorAusencia)
+                    .addFields(
+                        { name: "Membro", value: `<@${interaction.user.id}>`, inline: true },
+                        { name: "Data Início", value: inicio, inline: true },
+                        { name: "Previsão Retorno", value: retorno, inline: true },
+                        { name: "Motivo", value: motivo }
+                    )
+                    .setFooter({ text: "Família Souza • Registro de Ausência" });
+
+                await canalAusence.send({ embeds: [embedAus] });
+            }
+
+            return await interaction.reply({ content: "✅ Sua ausência foi registrada com sucesso no sistema!", ephemeral: true });
+        }
+
+        // 5. BOTÕES APROVAR / RECUSAR SET DA STAFF
+        if (interaction.isButton() && (interaction.customId.startsWith("aprovar_") || interaction.customId.startsWith("recusar_"))) {
+            const isStaff = interaction.member?.permissions.has(PermissionsBitField.Flags.Administrator) ||
+                interaction.member?.roles.cache.some(r => CONFIG.cargosAdminsAprovadores.includes(r.id));
+
+            if (!isStaff) {
+                return await interaction.reply({ content: "❌ Apenas membros da Staff podem aprovar ou recusar registros.", ephemeral: true });
+            }
+
+            const parts = interaction.customId.split("_");
+            const action = parts[0];
+            const targetUserId = parts[1];
+
+            if (action === "aprovar") {
+                const roleId = parts[2];
+                const grupo = (CONFIG.grupos || []).find(g => 
+                    g.roleId === roleId || 
+                    g.id === roleId || 
+                    String(g.roleId || g.id).replace(/[^a-zA-Z0-9_]/g, "") === roleId
+                ) || { tag: "[Hunters]", roleId };
+
+                const member = await interaction.guild.members.fetch(targetUserId).catch(() => null);
+
+                if (member) {
+                    try {
+                        const embedMsg = interaction.message.embeds[0];
+                        let nickFormatado = "";
+                        if (embedMsg && embedMsg.fields && embedMsg.fields[4]) {
+                            nickFormatado = embedMsg.fields[4].value;
+                        } else if (embedMsg && embedMsg.fields && embedMsg.fields[2]) {
+                            const partesNomeId = embedMsg.fields[2].value.split(" | ");
+                            nickFormatado = formatarApelido(grupo.tag, partesNomeId[0], partesNomeId[1] || "00");
+                        }
+
+                        if (roleId && roleId !== "123456789012345678") {
+                            await member.roles.add(roleId).catch(() => null);
+                        }
+                        if (CONFIG.cargoCidadaoGeralId && CONFIG.cargoCidadaoGeralId !== "123456789012345678") {
+                            await member.roles.add(CONFIG.cargoCidadaoGeralId).catch(() => null);
+                        }
+                        if (CONFIG.cargoNaoRegistradoId && CONFIG.cargoNaoRegistradoId !== "123456789012345678") {
+                            await member.roles.remove(CONFIG.cargoNaoRegistradoId).catch(() => null);
+                        }
+
+                        if (nickFormatado && interaction.guild.ownerId !== targetUserId) {
+                            await member.setNickname(nickFormatado).catch(() => {});
+                        }
+
+                        if (CONFIG.regrasTexto) {
+                            const dmEmbed = new EmbedBuilder()
+                                .setTitle("🎉 Registro Aprovado — Clã Hunters & Família Souza!")
+                                .setColor("#2ECC71")
+                                .setDescription(`Parabéns <@${targetUserId}>, seu registro foi aprovado com sucesso!\n\n${CONFIG.regrasTexto}`)
+                                .setFooter({ text: CONFIG.footer });
+                            await member.send({ embeds: [dmEmbed] }).catch(() => null);
+                        }
+                    } catch (e) {
+                        console.error("Erro ao aprovar membro:", e);
+                    }
+                }
+
+                await interaction.message.edit({
+                    content: `✅ **Aprovado por <@${interaction.user.id}>**`,
+                    components: []
+                });
+
+                return await interaction.reply({ content: `✅ Membro <@${targetUserId}> foi aprovado com sucesso!`, ephemeral: true });
+            }
+
+            if (action === "recusar") {
+                await interaction.message.edit({
+                    content: `❌ **Recusado por <@${interaction.user.id}>**`,
+                    components: []
+                });
+
+                return await interaction.reply({ content: "❌ Registro do membro recusado.", ephemeral: true });
+            }
+        }
+    } catch (err) {
+        console.error("Erro na interação do Discord:", err);
+        if (!interaction.replied && !interaction.deferred) {
+            await interaction.reply({ content: "❌ Ocorreu um erro ao processar esta ação. Verifique os logs.", ephemeral: true }).catch(() => {});
+        }
     }
 });
 
 // HTTP Express Server Keep-Alive
 const app = express();
 app.get('/', (req, res) => res.send('🤖 Bot SIGIO Online!'));
-app.listen(PORT, () => console.log("🌐 Server HTTP rodando na porta " + PORT));
-
-client.once(Events.ClientReady, (c) => {
-    console.log("✅ Bot SIGIO Online como " + c.user.tag);
-});
+app.listen(PORT, () => console.log(`🌐 Servidor HTTP rodando na porta ${PORT}`));
 
 client.login(TOKEN);
