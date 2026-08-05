@@ -176,9 +176,12 @@ function formatarApelido(tag, nome, id) {
 }
 
 async function enviarRegrasPV(user) {
+    if (!user) return false;
     const embedPV = new EmbedBuilder()
         .setColor(CONFIG.embedColor || "#2ECC71")
         .setTitle("📜 REGRAS OBRIGATÓRIAS - CLÃ HUNTERS & FAMÍLIA SOUZA")
+        .setAuthor({ name: CONFIG.authorName || '👑 FAMÍLIA SOUZA INFINITA 👑', iconURL: CONFIG.botAvatarUrl })
+        .setThumbnail(CONFIG.thumbnailUrl || CONFIG.botAvatarUrl || "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=300&q=80")
         .setDescription("Olá <@" + user.id + ">!\n\n" + CONFIG.regrasTexto + "\n\n📖 **Livro Oficial de Regras FiveZ:** " + (CONFIG.regrasLink || "https://fivez.gitbook.io/fivez-regras") + "\n\n**Confirme a leitura no botão abaixo:**")
         .setFooter({ text: CONFIG.footer });
 
@@ -186,6 +189,7 @@ async function enviarRegrasPV(user) {
         new ButtonBuilder()
             .setCustomId("btn_confirmar_regras_pv")
             .setLabel("Li e Aceito as Regras")
+            .setEmoji("✅")
             .setStyle(ButtonStyle.Success)
     );
 
@@ -416,16 +420,24 @@ client.on(Events.InteractionCreate, async (interaction) => {
             return;
         }
 
-        const confirmado = confirmacoesRegras.get(interaction.user.id) ? "✅ Sim (PV)" : "❌ Não (PV)";
+        const leuPV = confirmacoesRegras.get(interaction.user.id);
+        const confirmado = leuPV ? "✅ Sim (PV)" : "❌ Não (PV)";
+
+        if (!leuPV) {
+            enviarRegrasPV(interaction.user).catch(() => {});
+        }
+
         const nickFormatado = formatarApelido(grupo.tag, nome, idJogo);
 
         const embedStaff = new EmbedBuilder()
             .setTitle('📩 Novo Pedido de Set')
+            .setAuthor({ name: CONFIG.authorName || '👑 FAMÍLIA SOUZA INFINITA 👑', iconURL: CONFIG.botAvatarUrl })
+            .setThumbnail(CONFIG.thumbnailUrl || CONFIG.botAvatarUrl || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=300&q=80')
             .setColor('#F1C40F')
             .addFields(
                 { name: 'Membro', value: `<@${interaction.user.id}>`, inline: true },
                 { name: 'Grupo', value: grupo.name, inline: true },
-                { name: 'Confirmou Regras PV?', value: confirmado },
+                { name: 'Confirmou Regras PV?', value: confirmado, inline: true },
                 { name: 'Nome | ID no Jogo', value: `${nome} | ${idJogo}` },
                 { name: 'Recrutador', value: recrutador, inline: true },
                 { name: '📖 Leu Regras FiveZ?', value: respRegras || 'Sim (fivez.gitbook.io/fivez-regras)' },
