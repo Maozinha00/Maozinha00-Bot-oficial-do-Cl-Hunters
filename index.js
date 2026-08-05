@@ -302,8 +302,11 @@ client.on(Events.InteractionCreate, async (interaction) => {
     }
 
     await interaction.reply({
-      content: `✅ **SEU REGISTRO SIGIO FOI APROVADO COM SUCESSO!**\n
-👤 **Nome Setado:** `${novoNick}`\n🏷️ **Grupo:** ${grupo.name}\n📞 **Telefone:** ${telefone}\n👮 **Recrutador:** ${recrutador}`,
+      content: "✅ **SEU REGISTRO SIGIO FOI APROVADO COM SUCESSO!**\n\n" +
+               "👤 **Nome Setado:** \`" + novoNick + "\`\n" +
+               "🏷️ **Grupo:** " + grupo.name + "\n" +
+               "📞 **Telefone:** " + telefone + "\n" +
+               "👮 **Recrutador:** " + recrutador,
       ephemeral: true
     });
 
@@ -315,7 +318,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
         .addFields(
           { name: "👤 Usuário", value: `${interaction.user.tag} (${interaction.user.id})`, inline: true },
           { name: "🏷️ Grupo", value: grupo.name, inline: true },
-          { name: "🆔 Nick Setado", value: ```${novoNick}``` },
+          { name: "🆔 Nick Setado", value: "\`\`\`" + novoNick + "\`\`\`" },
           { name: "📞 Telefone", value: telefone, inline: true },
           { name: "👮 Recrutador", value: recrutador, inline: true }
         )
