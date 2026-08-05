@@ -1,23 +1,18 @@
 /**
  * ==============================================================================
- * 🐺 HUNTERS & FAMÍLIA SOUZA - BOT SIGIO & CENTRAL DE LOGS
+ * 🐺 HUNTERS & FAMÍLIA SOUZA - BOT SIGIO & CENTRAL DE LOGS (ES Module / import)
  * ==============================================================================
  * Sistema completo de Registro SIGIO com Filtro Anti-Troll e Captura de Logs.
  * 
  * Requisitos:
  * - Node.js v18+ 
  * - npm install discord.js dotenv
- * 
- * Como Executar:
- * 1. Crie um arquivo .env na mesma pasta contendo:
- *    DISCORD_TOKEN=seu_token_do_bot_aqui
- * 2. Execute no terminal:
- *    node index.js
+ * - package.json contendo "type": "module" (OU salvar como index.js com ESM)
  * ==============================================================================
  */
 
-require('dotenv').config();
-const { 
+import 'dotenv/config';
+import { 
   Client, 
   GatewayIntentBits, 
   EmbedBuilder, 
@@ -27,22 +22,21 @@ const {
   ModalBuilder, 
   TextInputBuilder, 
   TextInputStyle,
-  Events,
-  PermissionsBitField
-} = require('discord.js');
+  Events 
+} from 'discord.js';
 
 // ⚙️ CONFIGURAÇÃO DE ID DOS CANAIS E CARGOS
 const CONFIG = {
-  // Canais onde os logs serão enviados (Substitua pelos IDs reais do seu servidor)
+  // Canais onde os logs serão enviados
   channels: {
     logEntradaSaida: "123456789012345678", // Canal de Entrada/Saída
     logExclusoes: "123456789012345678",     // Canal de Mensagens Deletadas
     logVoz: "123456789012345678",           // Canal de Entrada/Saída de Voz
-    logRegistros: "123456789012345678",      // Canal de Histórico de Registros SIGIO
+    logRegistros: "123456789012345678",      // Canal de Histórico de Aprovações
     painelRegistro: "123456789012345678"     // Canal onde o botão do SIGIO fica
   },
 
-  // Filtros Anti-Troll (Palavras e piadas proibidas no formulário)
+  // Filtros Anti-Troll (Respostas proibidas)
   antiTrollKeywords: [
     "piu", "piupiu", "pipi", "teste", "sua mae", "kkk", "admin", "god", 
     "dono", "foda", "pênis", "penis", "buceta", "vai tomar", "fdp", "corno"
@@ -160,14 +154,14 @@ client.on(Events.MessageDelete, async (message) => {
     .addFields(
       { name: "👤 Autor", value: message.author ? `${message.author.tag} (${message.author.id})` : "Desconhecido", inline: true },
       { name: "📌 Canal", value: message.channel ? `<#${message.channel.id}>` : "Desconhecido", inline: true },
-      { name: "💬 Conteúdo", value: message.content || "*Nenhum texto (imagem/embed)*" }
+      { name: "💬 Conteúdo", value: message.content || "*Nenhum texto (pode ter sido apenas imagem)*" }
     )
     .setTimestamp();
 
   channel.send({ embeds: [embed] }).catch(console.error);
 });
 
-// 4. Log de Entrada e Saída de Chamadas de Voz
+// 4. Log de Estado de Voz
 client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
   const channel = (newState.guild || oldState.guild).channels.cache.get(CONFIG.channels.logVoz);
   if (!channel) return;
@@ -205,11 +199,10 @@ client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
 });
 
 // ------------------------------------------------------------------------------
-// 📝 SISTEMA DE REGISTRO SIGIO (BOTÕES & FORMULÁRIOS MODAL)
+// 📝 SISTEMA DE REGISTRO SIGIO (INTERAÇÕES & MODAIS)
 // ------------------------------------------------------------------------------
 
 client.on(Events.InteractionCreate, async (interaction) => {
-  // 1. Botão "Iniciar Registro"
   if (interaction.isButton() && interaction.customId === 'iniciar_registro_sigio') {
     const row = new ActionRowBuilder();
     CONFIG.grupos.forEach((grupo) => {
@@ -229,7 +222,6 @@ client.on(Events.InteractionCreate, async (interaction) => {
     });
   }
 
-  // 2. Escolha do Grupo -> Abre o Modal
   if (interaction.isButton() && interaction.customId.startsWith('sigio_select_')) {
     const grupoId = interaction.customId.replace('sigio_select_', '');
     const grupo = CONFIG.grupos.find(g => g.id === grupoId);
@@ -276,7 +268,6 @@ client.on(Events.InteractionCreate, async (interaction) => {
     return interaction.showModal(modal);
   }
 
-  // 3. Envio do Formulário -> Validação Anti-Troll e Nickname
   if (interaction.isModalSubmit() && interaction.customId.startsWith('sigio_modal_')) {
     const grupoId = interaction.customId.replace('sigio_modal_', '');
     const grupo = CONFIG.grupos.find(g => g.id === grupoId) || { name: 'Membro', tag: '[Membro]' };
@@ -286,7 +277,6 @@ client.on(Events.InteractionCreate, async (interaction) => {
     const telefone = interaction.fields.getTextInputValue('telefone').trim();
     const recrutador = interaction.fields.getTextInputValue('recrutador').trim();
 
-    // Filtro Anti-Troll
     const respostasConcatenadas = `${nome} ${passaporte} ${telefone} ${recrutador}`.toLowerCase();
     const palavraTrollEncontrada = CONFIG.antiTrollKeywords.find(kw => respostasConcatenadas.includes(kw));
 
@@ -297,7 +287,6 @@ client.on(Events.InteractionCreate, async (interaction) => {
       });
     }
 
-    // Formatação do Nickname: [TAG] Nome | ID
     const novoNick = `${grupo.tag} ${nome} | ${passaporte}`;
     const member = interaction.member;
 
@@ -309,16 +298,15 @@ client.on(Events.InteractionCreate, async (interaction) => {
         await member.roles.add(grupo.roleId);
       }
     } catch (err) {
-      console.error("Erro ao alterar nickname ou cargos:", err);
+      console.error("Erro ao alterar nickname ou cargos do membro:", err);
     }
 
-    // Resposta Privada de Sucesso
     await interaction.reply({
-      content: `✅ **SEU REGISTRO SIGIO FOI APROVADO COM SUCESSO!**\n\n👤 **Nome Setado:** \`${novoNick}\`\n🏷️ **Grupo:** ${grupo.name}\n📞 **Telefone:** ${telefone}\n👮 **Recrutador:** ${recrutador}`,
+      content: `✅ **SEU REGISTRO SIGIO FOI APROVADO COM SUCESSO!**\n
+👤 **Nome Setado:** `${novoNick}`\n🏷️ **Grupo:** ${grupo.name}\n📞 **Telefone:** ${telefone}\n👮 **Recrutador:** ${recrutador}`,
       ephemeral: true
     });
 
-    // Envio do Log de Registro Aprovado
     const logChannel = interaction.guild.channels.cache.get(CONFIG.channels.logRegistros);
     if (logChannel) {
       const embedLog = new EmbedBuilder()
@@ -338,5 +326,4 @@ client.on(Events.InteractionCreate, async (interaction) => {
   }
 });
 
-// Conectar o Bot
 client.login(process.env.DISCORD_TOKEN);
