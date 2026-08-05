@@ -58,7 +58,7 @@ const CONFIG = {
     "descricaoPainel": "📢 **AVISO IMPORTANTE PARA TODOS (@everyone):**\n> ⚠️ **PRAZO LIMITE DE REGISTRO:** Todo membro que entrar no servidor tem um prazo máximo de **3 dias** para realizar o registro de cidadania.\n> 🚫 Se você passar de **3 dias** no servidor sem realizar o seu registro (ficando sem os cargos dos grupos), você será **kickado automaticamente** pelo sistema!\n\nPara desbloquear todos os canais do servidor e registrar sua cidadania, selecione seu grupo abaixo.\n\n🎁 **Benefícios ao registrar:**\n> ✅ **Cargo do seu Grupo escolhido**\n> 🏷️ **Apelido Atualizado:** Com a tag da facção, seu Nome e ID\n> 🔓 **Liberação imediata** dos canais e categorias do servidor\n\n👇 *Clique no botão abaixo, escolha seu grupo e preencha o formulário!*",
     "tituloPainelAusencia": "🌴 Painel de Registro de Ausência",
     "descricaoPainelAusencia": "📢 **REGISTRO DE AUSÊNCIA & FOLGA**\n> 🌴 Pretende ficar ausente das atividades ou ações no servidor?\n> ⚠️ Registre sua ausência com motivo e prazo de retorno para avisar a administração e evitar ser removido por inatividade.\n\n👇 *Clique no botão abaixo para preencher sua justificativa!*",
-    "regrasTexto": "# 📜 REGRAS OFICIAIS • CLÃ HUNTERS\n\n<@&1527848364496912404>\n<@&1523277774436171796>\n<@&1528075981078663259>\n<@&1515125826780135485>\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n## ⚔️ 1. Respeito\nRespeite todos os membros do clã, aliados, adversários e a liderança. Qualquer falta de respeito poderá resultar em punição.\n\n## 👑 2. Respeite a Hierarquia\nAs decisões da liderança devem ser respeitadas. Caso tenha dúvidas ou problemas, procure um superior.\n\n## 🦺 3. Uniforme Obrigatório\nÉ obrigatório utilizar o **Preset Hunters** durante:\nbind keyboard \"6\" \"preset Hunters\"\n* 🔴 Áreas Vermelhas;\n* 🟡 Áreas Amarelas;\n* ⚔️ Eventos;\n* 💥 Horários de PVP.\n\n## 📻 4. Rádio Oficial\nÉ obrigatório permanecer na **rádio 633** durante todas as atividades do Clã.\n🛒 Para vendas, utilize exclusivamente a **rádio 635**.\n\n## 🐺 5. Prioridade ao Clã\nSempre que houver **QRR**, defesa do território ou convocação da liderança, o **Clã Hunters** deve ser sua prioridade.\n\n## 🚫 6. Não Prejudique o Clã\nÉ proibido realizar qualquer ação que possa gerar punições ao Clã ou prejudicar sua reputação.\n\n## 🤝 7. Trabalho em Equipe\nAjude seus companheiros sempre que possível. O sucesso do Clã depende da união de todos.\n\n## 📦 8. Estoque do Clã\nTodo aço referente às metas obrigatórias deve ser depositado no estoque do Clã e registrado corretamente no painel.\n\n## 📅 9. Regra de Ausência\nCaso precise se ausentar, é **obrigatório informar a liderança** e registrar sua ausência.\n❌ Membros que ficarem **3 dias consecutivos sem entrar na cidade e sem justificar a ausência** serão **retirados do painel do Clã Hunters**.\n\n## 💬 10. Comunicação\nMantenha uma comunicação organizada nas rádios e no Discord.\n\n## ⚠️ 11. Punições\nO descumprimento de qualquer regra poderá resultar em Advertência, Suspensão, Rebaixamento ou Expulsão.\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n> 🐺 **DISCIPLINA • RESPEITO • LEALDADE • UNIÃO**\n> **Quem veste o Preset Hunters representa todo o Clã. Honre a camisa e fortaleça a nossa família!** ⚔️🔥",
+    "regrasTexto": "# 📜 REGRAS OFICIAIS • CLÃ HUNTERS\⚔️ 1. Respeito\nRespeite todos os membros do clã, aliados, adversários e a liderança. Qualquer falta de respeito poderá resultar em punição.\n\n## 👑 2. Respeite a Hierarquia\nAs decisões da liderança devem ser respeitadas. Caso tenha dúvidas ou problemas, procure um superior.\n\n## 🦺 3. Uniforme Obrigatório\nÉ obrigatório utilizar o **Preset Hunters** durante:\nbind keyboard \"6\" \"preset Hunters\"\n* 🔴 Áreas Vermelhas;\n* 🟡 Áreas Amarelas;\n* ⚔️ Eventos;\n* 💥 Horários de PVP.\n\n## 📻 4. Rádio Oficial\nÉ obrigatório permanecer na **rádio 633** durante todas as atividades do Clã.\n🛒 Para vendas, utilize exclusivamente a **rádio 635**.\n\n## 🐺 5. Prioridade ao Clã\nSempre que houver **QRR**, defesa do território ou convocação da liderança, o **Clã Hunters** deve ser sua prioridade.\n\n## 🚫 6. Não Prejudique o Clã\nÉ proibido realizar qualquer ação que possa gerar punições ao Clã ou prejudicar sua reputação.\n\n## 🤝 7. Trabalho em Equipe\nAjude seus companheiros sempre que possível. O sucesso do Clã depende da união de todos.\n\n## 📦 8. Estoque do Clã\nTodo aço referente às metas obrigatórias deve ser depositado no estoque do Clã e registrado corretamente no painel.\n\n## 📅 9. Regra de Ausência\nCaso precise se ausentar, é **obrigatório informar a liderança** e registrar sua ausência.\n❌ Membros que ficarem **3 dias consecutivos sem entrar na cidade e sem justificar a ausência** serão **retirados do painel do Clã Hunters**.\n\n## 💬 10. Comunicação\nMantenha uma comunicação organizada nas rádios e no Discord.\n\n## ⚠️ 11. Punições\nO descumprimento de qualquer regra poderá resultar em Advertência, Suspensão, Rebaixamento ou Expulsão.\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n> 🐺 **DISCIPLINA • RESPEITO • LEALDADE • UNIÃO**\n> **Quem veste o Preset Hunters representa todo o Clã. Honre a camisa e fortaleça a nossa família!** ⚔️🔥",
     "regrasLink": "https://fivez.gitbook.io/fivez-regras",
     "perguntaRegrasCincoZ": "O que é RDM, VDM e Amor à Vida na Cidade?",
     "perguntaInatividadecincoZ": "Ciente de SafeZone, Anti-Jogo e Inatividade?",
@@ -78,7 +78,7 @@ const CONFIG = {
         {
             "id": "grupo_hunters_recruta",
             "name": "Recruta Hunters",
-            "roleId": "1523277774436171796",
+            "roleId": "1515125826780135485",
             "tag": "[Recruta]",
             "description": "Cargo de recruta em teste",
             "emoji": "🎯"
@@ -86,31 +86,31 @@ const CONFIG = {
         {
             "id": "grupo_hunters_membro",
             "name": "Membro Hunters",
-            "roleId": "1527848364496912404",
-            "tag": "[Hunters]",
+            "roleId": "1528075981078663259",
+            "tag": "|Hunters|",
             "description": "Membro oficial do Clã Hunters",
             "emoji": "🐺"
         },
         {
             "id": "grupo_souza_membro",
             "name": "Família Souza",
-            "roleId": "1515125826780135485",
-            "tag": "[Souza]",
+            "roleId": "1515125828185493675",
+            "tag": "|Souza|",
             "description": "Membro da Família Souza",
             "emoji": "⚜️"
         },
         {
             "id": "grupo_aliado",
             "name": "Aliado",
-            "roleId": "123456789012345689",
-            "tag": "[Aliado]",
+            "roleId": "1515125842328424640",
+            "tag": "|Aliado|",
             "description": "Amigos que estão sempre aqui",
             "emoji": "🤝"
         },
         {
             "id": "grupo_comprador",
             "name": "Comprador",
-            "roleId": "123456789012345686",
+            "roleId": "1517662363266842725",
             "tag": "[Comprador]",
             "description": "Comprador de armas",
             "emoji": "🛒"
