@@ -31,6 +31,9 @@ const PORT = process.env.PORT || 3000;
 
 const CONFIG = {
     "token": TOKEN,
+    "prefixo": "!",
+    "comandoPainelRegistro": "!painelregistro",
+    "comandoPainelAusencia": "!painelausencia",
     "botName": "HUNTERS BOT!",
     "botAvatarUrl": "https://i.imgur.com/0iMBT5C.jpeg",
     "canalRegistroId": "123456789012345679",
@@ -237,6 +240,80 @@ client.on(Events.GuildMemberRemove, async (member) => {
         .setFooter({ text: CONFIG.footerSaida });
 
     await canal.send({ content, embeds: [embed] });
+});
+
+// ----------------------------------------------------------------------------
+// EVENTO: Comandos de Mensagem (!painelregistro / !painelausencia)
+// ----------------------------------------------------------------------------
+client.on(Events.MessageCreate, async (message) => {
+    if (message.author.bot) return;
+
+    const contentLower = message.content.trim().toLowerCase();
+    const cmdRegistro = CONFIG.comandoPainelRegistro.toLowerCase();
+    const cmdAusencia = CONFIG.comandoPainelAusencia.toLowerCase();
+
+    // Comando do Painel de Registro
+    if (contentLower === cmdRegistro || contentLower.startsWith(cmdRegistro + ' ')) {
+        const isAdmin = message.member?.permissions.has(PermissionsBitField.Flags.Administrator) ||
+            message.member?.roles.cache.some(r => CONFIG.cargosAdminsAprovadores.includes(r.id));
+
+        if (!isAdmin) {
+            return message.reply("❌ Apenas administradores podem enviar este painel.");
+        }
+
+        const options = CONFIG.grupos.map(g => ({
+            label: g.name,
+            description: g.description,
+            value: g.id,
+            emoji: g.emoji
+        }));
+
+        const selectMenu = new StringSelectMenuBuilder()
+            .setCustomId("selecionar_grupo_registro")
+            .setPlaceholder("Escolha o seu grupo para iniciar o registro...")
+            .addOptions(options);
+
+        const row = new ActionRowBuilder().addComponents(selectMenu);
+
+        const embed = new EmbedBuilder()
+            .setColor(CONFIG.embedColor)
+            .setAuthor({ name: CONFIG.authorName, iconURL: CONFIG.botAvatarUrl })
+            .setTitle("📝 " + CONFIG.tituloPainel)
+            .setDescription(CONFIG.descricaoPainel)
+            .setImage("https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1200&q=80")
+            .setFooter({ text: CONFIG.footer });
+
+        await message.channel.send({ embeds: [embed], components: [row] });
+        if (message.deletable) await message.delete().catch(() => {});
+    }
+
+    // Comando do Painel de Ausência
+    if (contentLower === cmdAusencia || contentLower.startsWith(cmdAusencia + ' ')) {
+        const isAdmin = message.member?.permissions.has(PermissionsBitField.Flags.Administrator) ||
+            message.member?.roles.cache.some(r => CONFIG.cargosAdminsAprovadores.includes(r.id));
+
+        if (!isAdmin) {
+            return message.reply("❌ Apenas administradores podem enviar este painel.");
+        }
+
+        const btnAusencia = new ButtonBuilder()
+            .setCustomId("abrir_modal_ausencia")
+            .setLabel("Registrar Ausência / Folga")
+            .setEmoji("🌴")
+            .setStyle(ButtonStyle.Warning);
+
+        const row = new ActionRowBuilder().addComponents(btnAusencia);
+
+        const embed = new EmbedBuilder()
+            .setColor(CONFIG.embedColorAusencia)
+            .setAuthor({ name: CONFIG.authorName, iconURL: CONFIG.botAvatarUrl })
+            .setTitle(CONFIG.tituloPainelAusencia)
+            .setDescription(CONFIG.descricaoPainelAusencia)
+            .setFooter({ text: "Família Souza • Sistema de Ausências" });
+
+        await message.channel.send({ embeds: [embed], components: [row] });
+        if (message.deletable) await message.delete().catch(() => {});
+    }
 });
 
 // HTTP Express Server Keep-Alive
