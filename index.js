@@ -1,18 +1,21 @@
 /**
  * ==============================================================================
- * 🐺 HUNTERS & FAMÍLIA SOUZA - BOT SIGIO & CENTRAL DE LOGS (ES Module / import)
+ * 🐺 HUNTERS & FAMÍLIA SOUZA - BOT SIGIO & CENTRAL DE LOGS (CommonJS / index.cjs)
  * ==============================================================================
  * Sistema completo de Registro SIGIO com Filtro Anti-Troll e Captura de Logs.
  * 
  * Requisitos:
  * - Node.js v18+ 
  * - npm install discord.js dotenv
- * - package.json contendo "type": "module" (OU salvar como index.js com ESM)
+ * 
+ * DICA PARA EVITAR ERRO DE ES MODULE:
+ * Se o seu package.json contiver "type": "module", renomeie este arquivo para
+ * "index.cjs" ou mude a aba para "ES Module (import)".
  * ==============================================================================
  */
 
-import 'dotenv/config';
-import { 
+require('dotenv').config();
+const { 
   Client, 
   GatewayIntentBits, 
   EmbedBuilder, 
@@ -22,18 +25,18 @@ import {
   ModalBuilder, 
   TextInputBuilder, 
   TextInputStyle,
-  Events 
-} from 'discord.js';
+  Events
+} = require('discord.js');
 
 // ⚙️ CONFIGURAÇÃO DE ID DOS CANAIS E CARGOS
 const CONFIG = {
   // Canais onde os logs serão enviados
   channels: {
-    logEntradaSaida: "123456789012345678", // Canal de Entrada/Saída
-    logExclusoes: "123456789012345678",     // Canal de Mensagens Deletadas
-    logVoz: "123456789012345678",           // Canal de Entrada/Saída de Voz
-    logRegistros: "123456789012345678",      // Canal de Histórico de Aprovações
-    painelRegistro: "123456789012345678"     // Canal onde o botão do SIGIO fica
+    logEntradaSaida: "1524222632923496509", // Canal de Entrada/Saída
+    logExclusoes: "1515448473246498866",     // Canal de Mensagens Deletadas
+    logVoz: "1515125867032871033",           // Canal de Entrada/Saída de Voz
+    logRegistros: "1515448473246498866",      // Canal de Histórico de Aprovações
+    painelRegistro: "1515448138385592361"     // Canal onde o botão do SIGIO fica
   },
 
   // Filtros Anti-Troll (Respostas proibidas)
