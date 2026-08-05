@@ -54,31 +54,78 @@ const CONFIG = {
     "authorSub": "🏡 Família Souza — Entrada & Registro",
     "footer": "Família Souza • Entrada - Boas-vindas",
     "footerSaida": "Família Souza • Saída - Registrado",
-    "tituloPainel": "Seja bem-vindo à nossa Comunidade!",
-    "descricaoPainel": "📢 **AVISO IMPORTANTE PARA TODOS (@everyone):**\n> ⚠️ **PRAZO LIMITE DE REGISTRO:** Todo membro que entrar no servidor tem um prazo máximo de **3 dias** para realizar o registro.\n> 🚫 Caso contrário, será removido automaticamente!\n\nPara desbloquear os canais, escolha seu grupo abaixo.",
-    "tituloPainelAusencia": "🌴 Painel de Registro de Ausência",
-    "descricaoPainelAusencia": "📢 **REGISTRO DE AUSÊNCIA & FOLGA**\nPreencha com o motivo e previsão de retorno.",
-    "regrasTexto": `# 📜 REGRAS OFICIAIS • CLÃ HUNTERS & FAMÍLIA SOUZA
+    "tituloPainel": `Seja bem-vindo à nossa Comunidade!`,
+    "descricaoPainel": `📢 **AVISO IMPORTANTE PARA TODOS (@everyone):**
+> ⚠️ **PRAZO LIMITE DE REGISTRO:** Todo membro que entrar no servidor tem um prazo máximo de **3 dias** para realizar o registro de cidadania.
+> 🚫 Se você passar de **3 dias** no servidor sem realizar o seu registro (ficando sem os cargos dos grupos), você será **kickado automaticamente** pelo sistema!
+
+Para desbloquear todos os canais do servidor e registrar sua cidadania, selecione seu grupo abaixo.
+
+🎁 **Benefícios ao registrar:**
+> ✅ **Cargo do seu Grupo escolhido**
+> 🏷️ **Apelido Atualizado:** Com a tag da facção, seu Nome e ID
+> 🔓 **Liberação imediata** dos canais e categorias do servidor
+
+👇 *Clique no botão abaixo, escolha seu grupo e preencha o formulário!*`,
+    "tituloPainelAusencia": `🌴 Painel de Registro de Ausência`,
+    "descricaoPainelAusencia": `📢 **REGISTRO DE AUSÊNCIA & FOLGA**
+> 🌴 Pretende ficar ausente das atividades ou ações no servidor?
+> ⚠️ Registre sua ausência com motivo e prazo de retorno para avisar a administração e evitar ser removido por inatividade.
+
+👇 *Clique no botão abaixo para preencher sua justificativa!*`,
+    "regrasTexto": `# 📜 REGRAS OFICIAIS • CLÃ HUNTERS
+
+<@&1527848364496912404>
+<@&1523277774436171796>
+<@&1528075981078663259>
+<@&1515125826780135485>
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 ## ⚔️ 1. Respeito
-Respeite todos os membros do clã, aliados, adversários e a liderança.
+Respeite todos os membros do clã, aliados, adversários e a liderança. Qualquer falta de respeito poderá resultar em punição.
 
 ## 👑 2. Respeite a Hierarquia
-As decisões da liderança devem ser respeitadas.
+As decisões da liderança devem ser respeitadas. Caso tenha dúvidas ou problemas, procure um superior.
 
 ## 🦺 3. Uniforme Obrigatório
-É obrigatório utilizar o Preset Hunters durante ações e eventos.
+É obrigatório utilizar o **Preset Hunters** durante:
+bind keyboard "6" "preset Hunters"
+* 🔴 Áreas Vermelhas;
+* 🟡 Áreas Amarelas;
+* ⚔️ Eventos;
+* 💥 Horários de PVP.
 
 ## 📻 4. Rádio Oficial
-É obrigatório permanecer na rádio 633 durante todas as atividades.
+É obrigatório permanecer na **rádio 633** durante todas as atividades do Clã.
+🛒 Para vendas, utilize exclusivamente a **rádio 635**.
 
 ## 🐺 5. Prioridade ao Clã
-Sempre que houver QRR, a convocação deve ser sua prioridade.
+Sempre que houver **QRR**, defesa do território ou convocação da liderança, o **Clã Hunters** deve ser sua prioridade.
+
+## 🚫 6. Não Prejudique o Clã
+É proibido realizar qualquer ação que possa gerar punições ao Clã ou prejudicar sua reputação.
+
+## 🤝 7. Trabalho em Equipe
+Ajude seus companheiros sempre que possível. O sucesso do Clã depende da união de todos.
+
+## 📦 8. Estoque do Clã
+Todo aço referente às metas obrigatórias deve ser depositado no estoque do Clã e registrado corretamente no painel.
 
 ## 📅 9. Regra de Ausência
-Ficar 3 dias sem justificar ausência resulta em remoção.
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+Caso precise se ausentar, é **obrigatório informar a liderança** e registrar sua ausência.
+❌ Membros que ficarem **3 dias consecutivos sem entrar na cidade e sem justificar a ausência** serão **retirados do painel do Clã Hunters**.
+
+## 💬 10. Comunicação
+Mantenha uma comunicação organizada nas rádios e no Discord.
+
+## ⚠️ 11. Punições
+O descumprimento de qualquer regra poderá resultar em Advertência, Suspensão, Rebaixamento ou Expulsão.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+> 🐺 **DISCIPLINA • RESPEITO • LEALDADE • UNIÃO**
+> **Quem veste o Preset Hunters representa todo o Clã. Honre a camisa e fortaleça a nossa família!** ⚔️🔥`,
     "regrasLink": "https://fivez.gitbook.io/fivez-regras",
     "perguntaRegrasCincoZ": "O que é RDM, VDM e Amor à Vida na Cidade?",
     "perguntaInatividadecincoZ": "Ciente de SafeZone, Anti-Jogo e Inatividade?",
@@ -199,7 +246,7 @@ Estamos felices em ter você por aqui.`
             { name: 'Servidor', value: "Família Souza", inline: true },
             { name: 'Membros', value: `${membros}`, inline: true }
         )
-        .setImage("https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1200&q=80")
+        .setImage("https://i.imgur.com/B21O3Ok.gif")
         .setFooter({ text: CONFIG.footer });
 
     const btn = new ButtonBuilder()
@@ -236,7 +283,7 @@ client.on(Events.GuildMemberRemove, async (member) => {
             { name: 'Organização', value: "Família Souza", inline: true },
             { name: 'Servidor', value: "Família Souza", inline: true }
         )
-        .setImage("https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1200&q=80")
+        .setImage("https://i.imgur.com/B21O3Ok.gif")
         .setFooter({ text: CONFIG.footerSaida });
 
     await canal.send({ content, embeds: [embed] });
@@ -280,7 +327,7 @@ client.on(Events.MessageCreate, async (message) => {
             .setAuthor({ name: CONFIG.authorName, iconURL: CONFIG.botAvatarUrl })
             .setTitle("📝 " + CONFIG.tituloPainel)
             .setDescription(CONFIG.descricaoPainel)
-            .setImage("https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1200&q=80")
+            .setImage("https://i.imgur.com/B21O3Ok.gif")
             .setFooter({ text: CONFIG.footer });
 
         await message.channel.send({ embeds: [embed], components: [row] });
