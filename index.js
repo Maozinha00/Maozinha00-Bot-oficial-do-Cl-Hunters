@@ -87,7 +87,7 @@ const CONFIG = {
             "id": "grupo_hunters_membro",
             "name": "Membro Hunters",
             "roleId": "1528075981078663259",
-            "tag": "|Hunters|",
+            "tag": "|Membro|",
             "description": "Membro oficial do Clã Hunters",
             "emoji": "🐺"
         },
