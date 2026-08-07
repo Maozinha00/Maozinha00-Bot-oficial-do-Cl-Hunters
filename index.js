@@ -41,7 +41,7 @@ const CONFIG = {
     "canalRegistroId": "123456789012345678",
     "canalAprovacaoId": "1515448473246498866",
     "canalLogsId": "1515448473246498866",
-    "canalEntradaSaidaId": "1535106331869184101",
+    "canalEntradaSaidaId": "123456789012345678",
     "canalAusenciaId": "1531070382365343774",
     "canalAusenciaLogsId": "1531670383483158700",
     "cargosAdminsAprovadores": [
@@ -185,7 +185,6 @@ async function enviarWelcomeEmbed(member, tag, nome, idJogo) {
     const welcomeEmbed = new EmbedBuilder()
         .setColor("#8A2BE2")
         .setThumbnail(member.user.displayAvatarURL({ dynamic: true }))
-        .setImage("https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80")
         .setDescription(
             `╔════════════════════════════════════ 👑 FAMÍLIA SOUZA • HUNTERS 🐺 ════════════════════════════════════╗\n` +
             `║                                                                                                      ║\n` +
@@ -237,7 +236,6 @@ client.on(Events.GuildMemberAdd, async (member) => {
         const embedEntrada = new EmbedBuilder()
             .setColor("#8A2BE2")
             .setThumbnail(member.user.displayAvatarURL({ dynamic: true }))
-            .setImage("https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80")
             .setDescription(
                 `╔════════════════════════════════════ 👑 FAMÍLIA SOUZA • HUNTERS 🐺 ════════════════════════════════════╗\n` +
                 `║                                                                                                      ║\n` +
@@ -286,7 +284,6 @@ client.on(Events.MessageCreate, async (message) => {
         const embed = new EmbedBuilder()
             .setColor("#8A2BE2")
             .setThumbnail(message.guild.iconURL({ dynamic: true }))
-            .setImage("https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80")
             .setDescription(
                 `╔════════════════════════════════════ 👑 FAMÍLIA SOUZA • HUNTERS 🐺 ════════════════════════════════════╗\n` +
                 `║                                                                                                      ║\n` +
