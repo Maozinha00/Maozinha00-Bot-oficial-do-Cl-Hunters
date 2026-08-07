@@ -53,6 +53,7 @@ const CONFIG = {
     "authorName": "👑 FAMÍLIA SOUZA INFINITA 👑",
     "authorSub": "🏡 Sistema de Registro — Cidadania & Grupos",
     "thumbnailUrl": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=300&q=80",
+    "bannerUrl": "https://i.imgur.com/B21O3Ok.gif",
     "footer": "FiveZ & Lumenfall • Sistema Automático Anti-Queda • 25/07/2026 05:44",
     "tituloPainel": "Seja bem-vindo à nossa Comunidade!",
     "descricaoPainel": "📢 **AVISO IMPORTANTE PARA TODOS (@everyone):**\n> ⚠️ **PRAZO LIMITE DE REGISTRO:** Todo membro que entrar no servidor tem um prazo máximo de **3 dias** para realizar o registro de cidadania.\n> 🚫 Se você passar de **3 dias** no servidor sem realizar o seu registro (ficando sem os cargos dos grupos), você será **kickado automaticamente** pelo sistema!\n\nPara desbloquear todos os canais do servidor e registrar sua cidadania, selecione seu grupo abaixo.\n\n🎁 **Benefícios ao registrar:**\n> ✅ **Cargo do seu Grupo escolhido**\n> 🏷️ **Apelido Atualizado:** Com a tag da facção, seu Nome e ID\n> 🔓 **Liberação imediata** dos canais e categorias do servidor\n\n👇 *Clique no botão abaixo, escolha seu grupo e preencha o formulário!*",
@@ -67,34 +68,18 @@ const CONFIG = {
     "prazoRegistroDias": 3,
     "grupos": [
         {
-            "id": "grupo_cidadao_cincoz",
-            "name": "Cidadão FiveZ",
-            "roleId": "1528075981078663259",
-            "tag": "[Cidadão]",
-            "description": "Nome temporário antes de ser aprovado",
-            "emoji": "🏙️"
-        },
-        {
             "id": "grupo_hunters_recruta",
             "name": "Recruta Hunters",
             "roleId": "1523277774436171796",
-            "tag": "[Recruta]",
+            "tag": "|Recruta|",
             "description": "Cargo de recruta em teste",
             "emoji": "🎯"
-        },
-        {
-            "id": "grupo_hunters_membro",
-            "name": "Membro Hunters",
-            "roleId": "1527848364496912404",
-            "tag": "[Hunters]",
-            "description": "Membro oficial do Clã Hunters",
-            "emoji": "🐺"
         },
         {
             "id": "grupo_souza_membro",
             "name": "Família Souza",
             "roleId": "1515125826780135485",
-            "tag": "[Souza]",
+            "tag": "|Souza|",
             "description": "Membro da Família Souza",
             "emoji": "⚜️"
         },
@@ -102,7 +87,7 @@ const CONFIG = {
             "id": "grupo_aliado",
             "name": "Aliado",
             "roleId": "123456789012345689",
-            "tag": "[Aliado]",
+            "tag": "|Aliado|",
             "description": "Amigos que estão sempre aqui",
             "emoji": "🤝"
         },
@@ -110,7 +95,7 @@ const CONFIG = {
             "id": "grupo_comprador",
             "name": "Comprador",
             "roleId": "123456789012345686",
-            "tag": "[Comprador]",
+            "tag": "|Comprador|",
             "description": "Comprador de armas",
             "emoji": "🛒"
         }
@@ -142,6 +127,7 @@ async function enviarRegrasPV(user) {
         .setColor(CONFIG.embedColor || "#2ECC71")
         .setTitle("📜 REGRAS OBRIGATÓRIAS - CLÃ HUNTERS & FAMÍLIA SOUZA")
         .setDescription("Olá <@" + user.id + ">!\n\n" + CONFIG.regrasTexto + "\n\n📖 **Livro Oficial de Regras FiveZ:** " + (CONFIG.regrasLink || "https://fivez.gitbook.io/fivez-regras") + "\n\n**Confirme a leitura no botão abaixo:**")
+        .setImage(CONFIG.bannerUrl || "https://i.imgur.com/B21O3Ok.gif")
         .setFooter({ text: CONFIG.footer });
 
     const row = new ActionRowBuilder().addComponents(
@@ -375,6 +361,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
                             .setColor(CONFIG.embedColor || '#2ECC71')
                             .setTitle('🎉 Seja bem-vindo ao Clã Hunters!')
                             .setDescription("Olá <@" + targetId + ">, seu registro foi **APROVADO**! 🎉\n\nConfira abaixo as **REGRAS OFICIAIS DO CLÃ HUNTERS**:\n\n" + CONFIG.regrasTexto)
+                            .setImage(CONFIG.bannerUrl || "https://i.imgur.com/B21O3Ok.gif")
                             .setFooter({ text: CONFIG.footer || 'Clã Hunters' })
                             .setTimestamp();
                         await targetMember.send({ embeds: [dmEmbed] }).catch(() => null);
