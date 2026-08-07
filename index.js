@@ -78,7 +78,7 @@ const CONFIG = {
             "id": "grupo_hunters_recruta",
             "name": "Recruta Hunters",
             "roleId": "1523277774436171796",
-            "tag": "|Recruta|",
+            "tag": "[Recruta]",
             "description": "Cargo de recruta em teste",
             "emoji": "🎯"
         },
@@ -86,7 +86,7 @@ const CONFIG = {
             "id": "grupo_hunters_membro",
             "name": "Membro Hunters",
             "roleId": "1527848364496912404",
-            "tag": "|Hunters|",
+            "tag": "[Hunters]",
             "description": "Membro oficial do Clã Hunters",
             "emoji": "🐺"
         },
@@ -94,7 +94,7 @@ const CONFIG = {
             "id": "grupo_souza_membro",
             "name": "Família Souza",
             "roleId": "1515125826780135485",
-            "tag": "|Souza|",
+            "tag": "[Souza]",
             "description": "Membro da Família Souza",
             "emoji": "⚜️"
         },
@@ -102,7 +102,7 @@ const CONFIG = {
             "id": "grupo_aliado",
             "name": "Aliado",
             "roleId": "123456789012345689",
-            "tag": "|Aliado|",
+            "tag": "[Aliado]",
             "description": "Amigos que estão sempre aqui",
             "emoji": "🤝"
         },
@@ -110,7 +110,7 @@ const CONFIG = {
             "id": "grupo_comprador",
             "name": "Comprador",
             "roleId": "123456789012345686",
-            "tag": "|Comprador|",
+            "tag": "[Comprador]",
             "description": "Comprador de armas",
             "emoji": "🛒"
         }
@@ -374,11 +374,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
                         const dmEmbed = new EmbedBuilder()
                             .setColor(CONFIG.embedColor || '#2ECC71')
                             .setTitle('🎉 Seja bem-vindo ao Clã Hunters!')
-                            .setDescription("Olá <@" + targetId + ">, seu registro foi **APROVADO**! 🎉
-
-Confira abaixo as **REGRAS OFICIAIS DO CLÃ HUNTERS**:
-
-" + CONFIG.regrasTexto)
+                            .setDescription("Olá <@" + targetId + ">, seu registro foi **APROVADO**! 🎉\n\nConfira abaixo as **REGRAS OFICIAIS DO CLÃ HUNTERS**:\n\n" + CONFIG.regrasTexto)
                             .setFooter({ text: CONFIG.footer || 'Clã Hunters' })
                             .setTimestamp();
                         await targetMember.send({ embeds: [dmEmbed] }).catch(() => null);
