@@ -238,18 +238,29 @@ client.on(Events.MessageCreate, async (message) => {
         if (!isStaff) return message.reply({ content: "❌ Apenas Staff pode enviar o painel." });
 
         const embed = new EmbedBuilder()
-            .setColor(CONFIG.embedColor)
-            .setTitle(CONFIG.tituloPainel)
-            .setAuthor({ name: CONFIG.authorName, iconURL: CONFIG.thumbnailUrl })
-            .setThumbnail(CONFIG.thumbnailUrl)
-            .setDescription(CONFIG.descricaoPainel)
-            .setFooter({ text: CONFIG.footer });
+            .setColor(CONFIG.embedColor || "#2ECC71")
+            .setTitle("👑 PAINEL DE BOAS-VINDAS & REGISTRO — " + (CONFIG.organizationName || "Hunters"))
+            .setDescription(
+                `👋\n` +
+                `**Seja bem-vindo(a)!**\n` +
+                `Olá, este é o Painel de Boas-Vindas e Registro da **Hunters**.\n\n` +
+                `Clique no botão **📝 Realizar Registro / Set** abaixo para iniciar seu cadastro e receber a sua Tag no Discord e no jogo.\n\n` +
+                `**Servidor:** Familia Souza\n` +
+                `**Rádio Oficial:** 633`
+            )
+            .setFooter({ text: CONFIG.footer || "Clã Hunters & Família Souza" });
 
         const row = new ActionRowBuilder().addComponents(
             new ButtonBuilder()
                 .setCustomId('btn_iniciar_registro')
-                .setLabel('Realizar Registro')
-                .setStyle(ButtonStyle.Success)
+                .setLabel('Realizar Registro / Set')
+                .setEmoji('📝')
+                .setStyle(ButtonStyle.Success),
+            new ButtonBuilder()
+                .setLabel('Regras Oficiais')
+                .setEmoji('📜')
+                .setURL(CONFIG.regrasLink || 'https://fivez.gitbook.io/fivez-regras')
+                .setStyle(ButtonStyle.Link)
         );
 
         await message.channel.send({ embeds: [embed], components: [row] });
