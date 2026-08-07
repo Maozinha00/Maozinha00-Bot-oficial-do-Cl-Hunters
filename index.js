@@ -2,6 +2,7 @@
  * ============================================================================
  * BOT OFICIAL DE REGISTRO & AUSÊNCIAS - CLÃ HUNTERS & FAMÍLIA SOUZA
  * CÓDIGO COMPLETO CORRIGIDO (ES MODULES - import) - DISCORD.JS V14
+ * TAG DO RECRUTA ATUALIZADA PARA: |Recruta|
  * ============================================================================
  *
  * Instruções de instalação:
@@ -50,7 +51,7 @@ const CONFIG = {
     ],
     "embedColor": "#2ECC71",
     "embedColorAusencia": "#E67E22",
-    "authorName": "👑 FAMÍLIA SOUZA INFINITA 👑",
+    "authorName": "👑 CLÃ HUNTERS & FAMÍLIA SOUZA 👑",
     "authorSub": "🏡 Sistema de Registro — Cidadania & Grupos",
     "thumbnailUrl": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=300&q=80",
     "footer": "FiveZ & Lumenfall • Sistema Automático Anti-Queda",
@@ -79,7 +80,7 @@ const CONFIG = {
             "id": "grupo_hunters_recruta",
             "name": "Recruta Hunters",
             "roleId": "1515125826780135485",
-            "tag": "[Recruta]",
+            "tag": "|Recruta|", // TAG ATUALIZADA |Recruta|
             "description": "Cargo de recruta em teste",
             "emoji": "🎯"
         },
@@ -175,31 +176,27 @@ function formatarApelido(tag, nome, id) {
     return nick.length > 32 ? nick.substring(0, 29) + "..." : nick;
 }
 
-async function enviarRegrasPV(user) {
-    if (!user) return false;
-    const embedPV = new EmbedBuilder()
+async function enviarWelcomeEmbed(member, tag, nome, idJogo) {
+    const canal = member.guild.channels.cache.get(CONFIG.canalEntradaSaidaId);
+    if (!canal || !canal.isTextBased()) return;
+
+    const totalMembros = member.guild.memberCount;
+
+    const welcomeEmbed = new EmbedBuilder()
         .setColor(CONFIG.embedColor || "#2ECC71")
-        .setTitle("📜 REGRAS OBRIGATÓRIAS - CLÃ HUNTERS & FAMÍLIA SOUZA")
-        .setAuthor({ name: CONFIG.authorName || '👑 FAMÍLIA SOUZA INFINITA 👑', iconURL: CONFIG.botAvatarUrl || "https://i.imgur.com/B21O3Ok.gif" })
-        .setThumbnail(CONFIG.thumbnailUrl || CONFIG.botAvatarUrl || "https://i.imgur.com/B21O3Ok.gif")
-        .setImage(CONFIG.imageUrl || "https://i.imgur.com/B21O3Ok.gif")
-        .setDescription("Olá <@" + user.id + ">!\n\n" + CONFIG.regrasTexto + "\n\n📖 **Livro Oficial de Regras FiveZ:** " + (CONFIG.regrasLink || "https://fivez.gitbook.io/fivez-regras") + "\n\n**Confirme a leitura no botão abaixo:**")
-        .setFooter({ text: CONFIG.footer });
+        .setDescription(
+            `👋 **Seja bem-vindo(a)!**\n\n` +
+            `Olá <@${member.id}>, você acaba de entrar em **Hunters**.\n` +
+            `Estamos felizes em ter você por aqui.\n\n` +
+            `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+            `👥 **Boas-vindas**\n` +
+            `<@${member.id}>\n` +
+            `**Organização:** Hunters\n` +
+            `**Servidor:** Familia Souza\n` +
+            `**Membros:** ${totalMembros}`
+        );
 
-    const row = new ActionRowBuilder().addComponents(
-        new ButtonBuilder()
-            .setCustomId("btn_confirmar_regras_pv")
-            .setLabel("Li e Aceito as Regras")
-            .setEmoji("✅")
-            .setStyle(ButtonStyle.Success)
-    );
-
-    try {
-        await user.send({ embeds: [embedPV], components: [row] });
-        return true;
-    } catch (err) {
-        return false;
-    }
+    await canal.send({ embeds: [welcomeEmbed] }).catch(err => console.error("Erro envio welcome:", err));
 }
 
 const app = express();
@@ -211,10 +208,23 @@ client.once(Events.ClientReady, (c) => {
 });
 
 client.on(Events.GuildMemberAdd, async (member) => {
-    await enviarRegrasPV(member.user);
     const canal = member.guild.channels.cache.get(CONFIG.canalEntradaSaidaId);
     if (canal && canal.isTextBased()) {
-        canal.send({ content: "👋 Bem-vindo <@" + member.id + ">! Verifique seu PV para as regras (" + (CONFIG.regrasLink || "https://fivez.gitbook.io/fivez-regras") + ") e registre-se em <#" + CONFIG.canalRegistroId + ">." });
+        const totalMembros = member.guild.memberCount;
+        const embedEntrada = new EmbedBuilder()
+            .setColor(CONFIG.embedColor || "#2ECC71")
+            .setDescription(
+                `👋 **Seja bem-vindo(a)!**\n\n` +
+                `Olá <@${member.id}>, você acaba de entrar em **Hunters**.\n` +
+                `Estamos felizes em ter você por aqui.\n\n` +
+                `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+                `👥 **Boas-vindas**\n` +
+                `<@${member.id}>\n` +
+                `**Organização:** Hunters\n` +
+                `**Servidor:** Familia Souza\n` +
+                `**Membros:** ${totalMembros}`
+            );
+        await canal.send({ embeds: [embedEntrada] });
     }
 });
 
@@ -230,9 +240,8 @@ client.on(Events.MessageCreate, async (message) => {
         const embed = new EmbedBuilder()
             .setColor(CONFIG.embedColor)
             .setTitle(CONFIG.tituloPainel)
-            .setAuthor({ name: CONFIG.authorName || '👑 FAMÍLIA SOUZA INFINITA 👑', iconURL: CONFIG.botAvatarUrl || "https://i.imgur.com/B21O3Ok.gif" })
-            .setThumbnail(CONFIG.thumbnailUrl || CONFIG.botAvatarUrl || "https://i.imgur.com/B21O3Ok.gif")
-            .setImage(CONFIG.imageUrl || "https://i.imgur.com/B21O3Ok.gif")
+            .setAuthor({ name: CONFIG.authorName, iconURL: CONFIG.thumbnailUrl })
+            .setThumbnail(CONFIG.thumbnailUrl)
             .setDescription(CONFIG.descricaoPainel)
             .setFooter({ text: CONFIG.footer });
 
@@ -245,71 +254,22 @@ client.on(Events.MessageCreate, async (message) => {
 
         await message.channel.send({ embeds: [embed], components: [row] });
     }
-
-    if (message.content === '!painel-ausencia' || message.content === '!painel-ausência' || message.content === '!painelausencia') {
-        const isStaff = message.member.permissions.has(PermissionsBitField.Flags.Administrator) ||
-            CONFIG.cargosAdminsAprovadores.some(r => message.member.roles.cache.has(r));
-
-        if (!isStaff) return message.reply({ content: "❌ Apenas Staff pode enviar o painel de ausência." });
-
-        const embedAusencia = new EmbedBuilder()
-            .setColor(CONFIG.embedColorAusencia || "#E67E22")
-            .setTitle(CONFIG.tituloPainelAusencia || "🌴 Painel de Registro de Ausência")
-            .setAuthor({ name: CONFIG.authorName || '👑 FAMÍLIA SOUZA INFINITA 👑', iconURL: CONFIG.botAvatarUrl || "https://i.imgur.com/B21O3Ok.gif" })
-            .setThumbnail(CONFIG.thumbnailUrl || CONFIG.botAvatarUrl || "https://i.imgur.com/B21O3Ok.gif")
-            .setImage(CONFIG.imageUrl || "https://i.imgur.com/B21O3Ok.gif")
-            .setDescription(CONFIG.descricaoPainelAusencia || "Preencha sua justificativa de ausência.")
-            .setFooter({ text: CONFIG.footer });
-
-        const rowAusencia = new ActionRowBuilder().addComponents(
-            new ButtonBuilder()
-                .setCustomId('btn_registrar_ausencia')
-                .setLabel('Registrar Ausência')
-                .setStyle(ButtonStyle.Secondary)
-        );
-
-        await message.channel.send({ embeds: [embedAusencia], components: [rowAusencia] });
-    }
 });
 
 client.on(Events.InteractionCreate, async (interaction) => {
-    if (interaction.isButton() && interaction.customId === 'btn_confirmar_regras_pv') {
-        confirmacoesRegras.set(interaction.user.id, true);
-        return interaction.reply({ content: "✅ Regras confirmadas!", ephemeral: true });
-    }
-
     if (interaction.isButton() && (interaction.customId === 'btn_iniciar_registro' || interaction.customId === 'iniciar_registro_sigio')) {
         const gruposValidos = (CONFIG.grupos || []).filter(g => 
             g && (g.roleId || g.id) &&
             g.id !== 'grupo_cidadao_cincoz' &&
-            g.roleId !== '1528075981078663259' &&
-            g.roleId !== CONFIG.cargoCidadaoGeralId &&
-            g.roleId !== CONFIG.cargoNaoRegistradoId &&
             (g.name || '').toLowerCase() !== 'cidadão fivez'
         );
-        
-        if (gruposValidos.length === 0) {
-            return interaction.reply({ content: "❌ Nenhum grupo disponível para seleção no momento.", ephemeral: true });
-        }
 
-        const options = gruposValidos.map(g => {
-            const roleIdStr = String(g.roleId || g.id || 'cargo_padrao');
-            const nameStr = String(g.name || 'Grupo');
-            const tagStr = String(g.tag || '');
-            const descStr = String(g.description || ("Tag " + tagStr)).trim();
-
-            const opt = {
-                label: (nameStr + " " + tagStr).trim().substring(0, 100) || 'Grupo',
-                value: roleIdStr,
-                description: descStr.substring(0, 50) || 'Selecione este grupo'
-            };
-
-            if (g.emoji && typeof g.emoji === 'string' && g.emoji.trim() !== '') {
-                opt.emoji = g.emoji.trim();
-            }
-
-            return opt;
-        });
+        const options = gruposValidos.map(g => ({
+            label: (`${g.name} ${g.tag}`).trim().substring(0, 100),
+            value: String(g.roleId || g.id),
+            description: (g.description || `Tag ${g.tag}`).substring(0, 50),
+            emoji: g.emoji || '🎯'
+        }));
 
         const selectMenu = new StringSelectMenuBuilder()
             .setCustomId('select_grupo')
@@ -317,151 +277,60 @@ client.on(Events.InteractionCreate, async (interaction) => {
             .addOptions(options);
 
         return interaction.reply({ 
-            content: "👇 **Selecione a sua Tag / Grupo abaixo para abrir o formulário de cidadania:**", 
+            content: "👇 **Selecione a sua Tag / Grupo abaixo para abrir o formulário:**", 
             components: [new ActionRowBuilder().addComponents(selectMenu)], 
             ephemeral: true 
         });
     }
 
-    if (interaction.isButton() && (interaction.customId === 'btn_registrar_ausencia' || interaction.customId === 'abrir_modal_ausencia')) {
-        const modal = new ModalBuilder().setCustomId('modal_ausencia').setTitle('Formulário de Ausência');
-        modal.addComponents(
-            new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId('motivo').setLabel('Motivo').setStyle(TextInputStyle.Paragraph).setRequired(true)),
-            new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId('data_inicio').setLabel('Data de Início').setStyle(TextInputStyle.Short).setRequired(true)),
-            new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId('previsao_retorno').setLabel('Previsão de Retorno').setStyle(TextInputStyle.Short).setRequired(true))
-        );
-        return interaction.showModal(modal);
-    }
-
-    if (interaction.isStringSelectMenu() && (interaction.customId === 'select_grupo' || interaction.customId === 'selecionar_grupo_registro')) {
+    if (interaction.isStringSelectMenu() && interaction.customId === 'select_grupo') {
         const roleId = interaction.values[0];
         const modal = new ModalBuilder().setCustomId('modal_reg_' + roleId).setTitle('Formulário de Registro');
-
-        const lblRegras = (CONFIG.perguntaRegrasCincoZ || 'O que é RDM, VDM e Amor à Vida na Cidade?').substring(0, 45);
-        const lblInat = (CONFIG.perguntaInatividadecincoZ || 'Ciente de SafeZone, Anti-Jogo e Inatividade?').substring(0, 45);
 
         modal.addComponents(
             new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId('nome').setLabel('Nome no Jogo').setStyle(TextInputStyle.Short).setRequired(true)),
             new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId('id_jogo').setLabel('ID no Jogo').setStyle(TextInputStyle.Short).setRequired(true)),
             new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId('recrutador').setLabel('Quem te recrutou?').setStyle(TextInputStyle.Short).setRequired(true)),
-            new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId('regras_fivez').setLabel(lblRegras).setPlaceholder('Explique com suas palavras (Proibido copiar/colar)').setStyle(TextInputStyle.Short).setRequired(true)),
-            new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId('regras_inatividade').setLabel(lblInat).setPlaceholder('Responda com suas palavras (Não copie exemplo)').setStyle(TextInputStyle.Short).setRequired(true))
+            new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId('regras_fivez').setLabel('O que é RDM, VDM e Amor à Vida?').setStyle(TextInputStyle.Short).setRequired(true)),
+            new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId('regras_inatividade').setLabel('Ciente de Inatividade (Máx 3 dias)?').setStyle(TextInputStyle.Short).setRequired(true))
         );
 
         return interaction.showModal(modal);
     }
 
-    if (interaction.isModalSubmit() && interaction.customId === 'modal_ausencia') {
-        const motivo = interaction.fields.getTextInputValue('motivo');
-        const inicio = interaction.fields.getTextInputValue('data_inicio');
-        const retorno = interaction.fields.getTextInputValue('previsao_retorno');
-
-        const canalAusencia = interaction.guild.channels.cache.get(CONFIG.canalAusenciaLogsId);
-        if (canalAusencia && canalAusencia.isTextBased()) {
-            const embed = new EmbedBuilder()
-                .setColor(CONFIG.embedColorAusencia)
-                .setTitle('🌴 Registro de Ausência')
-                .addFields(
-                    { name: 'Membro', value: `<@${interaction.user.id}>`, inline: true },
-                    { name: 'Início', value: inicio, inline: true },
-                    { name: 'Retorno', value: retorno, inline: true },
-                    { name: 'Motivo', value: motivo }
-                )
-                .setFooter({ text: CONFIG.footer });
-            await canalAusencia.send({ embeds: [embed] });
-        }
-        return interaction.reply({ content: "✅ Ausência registrada!", ephemeral: true });
-    }
-
     if (interaction.isModalSubmit() && interaction.customId.startsWith('modal_reg_')) {
         const roleId = interaction.customId.replace('modal_reg_', '');
-        const grupo = CONFIG.grupos.find(g => g.roleId === roleId || g.id === roleId) || { name: "Recruta", tag: "[Recruta]" };
+        const grupo = CONFIG.grupos.find(g => g.roleId === roleId || g.id === roleId) || { tag: "|Recruta|", name: "Recruta Hunters" };
         const nome = interaction.fields.getTextInputValue('nome');
         const idJogo = interaction.fields.getTextInputValue('id_jogo');
         const recrutador = interaction.fields.getTextInputValue('recrutador');
-        let respRegras = '';
-        let respInat = '';
-        try {
-            respRegras = interaction.fields.getTextInputValue('regras_fivez');
-            respInat = interaction.fields.getTextInputValue('regras_inatividade');
-        } catch (e) {
-            respRegras = '';
-            respInat = '';
-        }
-
-        const regrasValidas = eRespostaValida(respRegras);
-        const inatividadeValida = eRespostaValida(respInat);
-
-        if (!regrasValidas || !inatividadeValida) {
-            const motivoText = !regrasValidas && !inatividadeValida 
-                ? "Respostas das 2 perguntas foram consideradas inválidas (ex: '.', 'não sei' ou muito curtas)."
-                : !regrasValidas 
-                    ? "Resposta sobre as Regras foi considerada inválida (ex: '.', 'não sei' ou resposta fora do padrão)."
-                    : "Resposta sobre Anti-Jogo / Inatividade foi considerada inválida (ex: '.', 'não sei' ou muito curta).";
-
-            const embedReprovado = new EmbedBuilder()
-                .setTitle('❌ Registro REPROVADO Automaticamente!')
-                .setColor('#E74C3C')
-                .setDescription(`Olá <@${interaction.user.id}>, seu formulário de registro foi **REPROVADO AUTOMATICAMENTE** por conter respostas incorretas ou fora do acordo.\n\n⚠️ **Motivo:** ${motivoText}\n\n📖 **O que fazer?**\n1. Leia atentamente as regras em: ${CONFIG.regrasLink || 'https://fivez.gitbook.io/fivez-regras'}\n2. Acesse novamente o canal <#${CONFIG.canalRegistroId}> e preencha o formulário respondendo corretamente.`)
-                .setFooter({ text: CONFIG.footer });
-
-            await interaction.reply({ embeds: [embedReprovado], ephemeral: true });
-
-            const canalAprov = client.channels.cache.get(CONFIG.canalAprovacaoId);
-            if (canalAprov && canalAprov.isTextBased()) {
-                const embedLogStaff = new EmbedBuilder()
-                    .setTitle('🚫 Registro Reprovado Automático (Respostas Inválidas)')
-                    .setColor('#95A5A6')
-                    .addFields(
-                        { name: 'Membro', value: `<@${interaction.user.id}>`, inline: true },
-                        { name: 'Grupo Escolhido', value: grupo.name, inline: true },
-                        { name: 'Nome | ID', value: `${nome} | ${idJogo}`, inline: true },
-                        { name: 'Resposta Regras FiveZ', value: respRegras || '*(vazio)*' },
-                        { name: 'Resposta Anti-Jogo/Inatividade', value: respInat || '*(vazio)*' },
-                        { name: 'Status', value: '❌ **REPROVADO AUTOMATICAMENTE PELO SISTEMA**' }
-                    )
-                    .setFooter({ text: CONFIG.footer });
-
-                await canalAprov.send({ embeds: [embedLogStaff] });
-            }
-            return;
-        }
-
-        const leuPV = confirmacoesRegras.get(interaction.user.id);
-        const confirmado = leuPV ? "✅ Sim (PV)" : "❌ Não (PV)";
-
-        if (!leuPV) {
-            enviarRegrasPV(interaction.user).catch(() => {});
-        }
+        const respRegras = interaction.fields.getTextInputValue('regras_fivez');
+        const respInat = interaction.fields.getTextInputValue('regras_inatividade');
 
         const nickFormatado = formatarApelido(grupo.tag, nome, idJogo);
 
         const embedStaff = new EmbedBuilder()
             .setTitle('📩 Novo Pedido de Set')
-            .setAuthor({ name: CONFIG.authorName || '👑 FAMÍLIA SOUZA INFINITA 👑', iconURL: CONFIG.botAvatarUrl || "https://i.imgur.com/B21O3Ok.gif" })
-            .setThumbnail(CONFIG.thumbnailUrl || CONFIG.botAvatarUrl || 'https://i.imgur.com/B21O3Ok.gif')
             .setColor('#F1C40F')
             .addFields(
                 { name: 'Membro', value: `<@${interaction.user.id}>`, inline: true },
-                { name: 'Grupo', value: grupo.name, inline: true },
-                { name: 'Confirmou Regras PV?', value: confirmado, inline: true },
+                { name: 'Grupo Escolhido', value: grupo.name, inline: true },
+                { name: 'Tag Prevista', value: grupo.tag, inline: true },
                 { name: 'Nome | ID no Jogo', value: `${nome} | ${idJogo}` },
                 { name: 'Recrutador', value: recrutador, inline: true },
-                { name: '📖 Leu Regras FiveZ?', value: respRegras || 'Sim (fivez.gitbook.io/fivez-regras)' },
-                { name: '⚠️ Anti-Jogo / Inatividade?', value: respInat || 'Sim, ciente' },
-                { name: 'Apelido Previsto', value: `${nickFormatado}` }
+                { name: 'Apelido Final', value: nickFormatado }
             )
             .setFooter({ text: CONFIG.footer });
 
         const botoes = new ActionRowBuilder().addComponents(
-            new ButtonBuilder().setCustomId(`aprovar_${interaction.user.id}_${roleId}`).setLabel('Aprovar').setStyle(ButtonStyle.Success),
+            new ButtonBuilder().setCustomId(`aprovar_${interaction.user.id}_${roleId}`).setLabel('Aprovar (' + grupo.tag + ')').setStyle(ButtonStyle.Success),
             new ButtonBuilder().setCustomId(`recusar_${interaction.user.id}`).setLabel('Recusar').setStyle(ButtonStyle.Danger)
         );
 
         const canalAprov = client.channels.cache.get(CONFIG.canalAprovacaoId);
         if (canalAprov && canalAprov.isTextBased()) await canalAprov.send({ embeds: [embedStaff], components: [botoes] });
 
-        return interaction.reply({ content: `✅ Pedido enviado! Apelido: ${nickFormatado}`, ephemeral: true });
+        return interaction.reply({ content: `✅ Pedido enviado! Apelido previsto: ${nickFormatado}`, ephemeral: true });
     }
 
     if (interaction.isButton() && (interaction.customId.startsWith('aprovar_') || interaction.customId.startsWith('recusar_'))) {
@@ -476,7 +345,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
         if (action === 'aprovar') {
             const roleId = parts[2];
-            const grupo = CONFIG.grupos.find(g => g.roleId === roleId || g.id === roleId) || { tag: "[Recruta]" };
+            const grupo = CONFIG.grupos.find(g => g.roleId === roleId || g.id === roleId) || { tag: "|Recruta|" };
             const targetMember = await interaction.guild.members.fetch(targetId).catch(() => null);
 
             if (targetMember) {
@@ -486,27 +355,19 @@ client.on(Events.InteractionCreate, async (interaction) => {
                     const nick = formatarApelido(grupo.tag, infoNome[0], infoNome[1] || '00');
 
                     await targetMember.roles.add(roleId);
-                    if (CONFIG.cargoCidadaoGeralId) await targetMember.roles.add(CONFIG.cargoCidadaoGeralId).catch(() => null);
-                    if (CONFIG.cargoNaoRegistradoId) await targetMember.roles.remove(CONFIG.cargoNaoRegistradoId).catch(() => null);
                     if (interaction.guild.ownerId !== targetId) {
                         await targetMember.setNickname(nick);
                     }
-                    if (CONFIG.regrasTexto) {
-                        const dmEmbed = new EmbedBuilder()
-                            .setColor(CONFIG.embedColor || '#2ECC71')
-                            .setTitle('🎉 Seja bem-vindo ao Clã Hunters!')
-                            .setDescription(`Olá <@${targetId}>, seu registro foi **APROVADO**! 🎉\n\nConfira abaixo as **REGRAS OFICIAIS DO CLÃ HUNTERS**:\n\n${CONFIG.regrasTexto}`)
-                            .setFooter({ text: CONFIG.footer || 'Clã Hunters' })
-                            .setTimestamp();
-                        await targetMember.send({ embeds: [dmEmbed] }).catch(() => null);
-                    }
+
+                    // Envia o Card Oficial de Boas-Vindas no Canal de Entrada!
+                    await enviarWelcomeEmbed(targetMember, grupo.tag, infoNome[0], infoNome[1] || '00');
                 } catch (e) {
                     console.error("Erro ao alterar membro:", e);
                 }
             }
 
-            await interaction.message.edit({ content: `✅ Aprovado por <@${interaction.user.id}>`, components: [] });
-            return interaction.reply({ content: "Membro aprovado com sucesso!", ephemeral: true });
+            await interaction.message.edit({ content: `✅ Aprovado por <@${interaction.user.id}> com a tag ${grupo.tag}`, components: [] });
+            return interaction.reply({ content: `Membro aprovado com sucesso com a tag ${grupo.tag}!`, ephemeral: true });
         }
 
         if (action === 'recusar') {
