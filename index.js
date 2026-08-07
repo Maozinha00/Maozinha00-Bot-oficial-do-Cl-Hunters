@@ -40,7 +40,7 @@ const CONFIG = {
     "canalRegistroId": "123456789012345678",
     "canalAprovacaoId": "1515448473246498866",
     "canalLogsId": "1515448473246498866",
-    "canalEntradaSaidaId": "1535106331869184101",
+    "canalEntradaSaidaId": "123456789012345678",
     "canalAusenciaId": "1531070382365343774",
     "canalAusenciaLogsId": "1531670383483158700",
     "cargosAdminsAprovadores": [
@@ -64,7 +64,7 @@ const CONFIG = {
     "perguntaRegrasCincoZ": "O que é RDM, VDM e Amor à Vida na Cidade?",
     "perguntaInatividadecincoZ": "Ciente de SafeZone, Anti-Jogo e Inatividade?",
     "cargoCidadaoGeralId": "123456789012345691",
-    "cargoNaoRegistradoId": "1533861590284238928",
+    "cargoNaoRegistradoId": "123456789012345692",
     "prazoRegistroDias": 3,
     "grupos": [
         {
@@ -165,33 +165,37 @@ client.on(Events.GuildMemberAdd, async (member) => {
 client.on(Events.MessageCreate, async (message) => {
     if (message.author.bot || !message.guild) return;
 
-    if (message.content === '!painel' || message.content === '!painel-registro') {
-        const isStaff = message.member.permissions.has(PermissionsBitField.Flags.Administrator) ||
-            CONFIG.cargosAdminsAprovadores.some(r => message.member.roles.cache.has(r));
+    const lower = message.content.trim().toLowerCase();
+    const isOwner = message.guild.ownerId === message.author.id;
+    const isAdmin = message.member?.permissions.has(PermissionsBitField.Flags.Administrator) ||
+                    message.member?.permissions.has(PermissionsBitField.Flags.ManageGuild);
+    const isConfiguredStaff = (CONFIG.cargosAdminsAprovadores || []).some(r => r && message.member?.roles.cache.has(r));
+    const isStaff = isOwner || isAdmin || isConfiguredStaff || (CONFIG.cargosAdminsAprovadores?.length === 0);
 
-        if (!isStaff) return message.reply({ content: "❌ Apenas Staff pode enviar o painel." });
+    if (lower === '!painel' || lower === '!painel-registro' || lower === '!painel_registro' || lower === '!painelregistro') {
+        if (!isStaff) return message.reply({ content: "❌ **Permissão Negada:** Apenas Administradores ou Staffs configurados podem enviar o painel." });
 
         const embed = new EmbedBuilder()
-            .setColor(CONFIG.embedColor)
-            .setTitle(CONFIG.tituloPainel)
-            .setDescription(CONFIG.descricaoPainel)
+            .setColor(CONFIG.embedColor || "#2ECC71")
+            .setTitle(CONFIG.tituloPainel || "Seja bem-vindo!")
+            .setDescription(CONFIG.descricaoPainel || "Clique abaixo para se registrar.")
             .setFooter({ text: CONFIG.footer });
+
+        if (CONFIG.thumbnailUrl) embed.setThumbnail(CONFIG.thumbnailUrl);
 
         const row = new ActionRowBuilder().addComponents(
             new ButtonBuilder()
                 .setCustomId('btn_iniciar_registro')
                 .setLabel('Realizar Registro')
+                .setEmoji('🏡')
                 .setStyle(ButtonStyle.Success)
         );
 
         await message.channel.send({ embeds: [embed], components: [row] });
     }
 
-    if (message.content === '!painel-ausencia' || message.content === '!painel-ausência') {
-        const isStaff = message.member.permissions.has(PermissionsBitField.Flags.Administrator) ||
-            CONFIG.cargosAdminsAprovadores.some(r => message.member.roles.cache.has(r));
-
-        if (!isStaff) return message.reply({ content: "❌ Apenas Staff pode enviar o painel de ausência." });
+    if (lower === '!painel-ausencia' || lower === '!painel-ausência' || lower === '!painel_ausencia' || lower === '!painelausencia') {
+        if (!isStaff) return message.reply({ content: "❌ **Permissão Negada:** Apenas Administradores ou Staffs configurados podem enviar o painel de ausência." });
 
         const embedAusencia = new EmbedBuilder()
             .setColor(CONFIG.embedColorAusencia || "#E67E22")
@@ -199,10 +203,13 @@ client.on(Events.MessageCreate, async (message) => {
             .setDescription(CONFIG.descricaoPainelAusencia || "Preencha sua justificativa de ausência.")
             .setFooter({ text: CONFIG.footer });
 
+        if (CONFIG.thumbnailUrl) embedAusencia.setThumbnail(CONFIG.thumbnailUrl);
+
         const rowAusencia = new ActionRowBuilder().addComponents(
             new ButtonBuilder()
                 .setCustomId('btn_registrar_ausencia')
                 .setLabel('Registrar Ausência')
+                .setEmoji('🌴')
                 .setStyle(ButtonStyle.Secondary)
         );
 
