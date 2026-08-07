@@ -41,7 +41,7 @@ const CONFIG = {
     "canalRegistroId": "123456789012345678",
     "canalAprovacaoId": "1515448473246498866",
     "canalLogsId": "1515448473246498866",
-    "canalEntradaSaidaId": "1535106331869184101",
+    "canalEntradaSaidaId": "123456789012345678",
     "canalAusenciaId": "1531070382365343774",
     "canalAusenciaLogsId": "1531670383483158700",
     "cargosAdminsAprovadores": [
@@ -49,7 +49,7 @@ const CONFIG = {
         "123456789012345678",
         "987654321098765432"
     ],
-    "embedColor": "#2ECC71",
+    "embedColor": "#8A2BE2",
     "embedColorAusencia": "#E67E22",
     "authorName": "👑 CLÃ HUNTERS & FAMÍLIA SOUZA 👑",
     "authorSub": "🏡 Sistema de Registro — Cidadania & Grupos",
@@ -183,18 +183,41 @@ async function enviarWelcomeEmbed(member, tag, nome, idJogo) {
     const totalMembros = member.guild.memberCount;
 
     const welcomeEmbed = new EmbedBuilder()
-        .setColor(CONFIG.embedColor || "#2ECC71")
+        .setColor("#8A2BE2")
+        .setThumbnail(member.user.displayAvatarURL({ dynamic: true }))
+        .setImage("https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80")
         .setDescription(
-            `👋\n` +
-            `**Seja bem-vindo(a)!**\n` +
-            `Olá <@${member.id}>, você acaba de entrar em **Hunters**.\n\n` +
-            `Estamos felizes em ter você por aqui.\n\n` +
-            `**Boas-vindas**\n` +
-            `<@${member.id}>\n` +
-            `**Organização:** Hunters\n` +
-            `**Servidor:** Familia Souza\n` +
-            `**Membros:** ${totalMembros}`
-        );
+            `╔════════════════════════════════════ 👑 FAMÍLIA SOUZA • HUNTERS 🐺 ════════════════════════════════════╗\n` +
+            `║                                                                                                      ║\n` +
+            `║                                   ✦ BEM-VINDO À FAMÍLIA HUNTERS ✦                                   ║\n` +
+            `║                                                                                                      ║\n` +
+            `║                                      🐺 "FORÇA • LEALDADE • RESPEITO" 🐺                            ║\n` +
+            `║                                                                                                      ║\n` +
+            `╠══════════════════════════════════════════════════════════════════════════════════════════════════════╣\n` +
+            `║                                                                                                      ║\n` +
+            `║  👤 MEMBRO............... ➜ <@${member.id}>                                                          ║\n` +
+            `║  🏷️ ORGANIZAÇÃO.......... ➜ HUNTERS                                                                  ║\n` +
+            `║  🌍 SERVIDOR............. ➜ Família Souza                                                            ║\n` +
+            `║  👥 MEMBROS.............. ➜ ${totalMembros}                                                          ║\n` +
+            `║                                                                                                      ║\n` +
+            `╠══════════════════════════════════════════════════════════════════════════════════════════════════════╣\n` +
+            `║                                                                                                      ║\n` +
+            `║  📖 Leia as regras do servidor.                                                                      ║\n` +
+            `║  🎯 Aguarde um Líder realizar seu registro.                                                          ║\n` +
+            `║  🎙️ Utilize a rádio oficial quando solicitado.                                                      ║\n` +
+            `║  🤝 Respeite todos os membros e a hierarquia.                                                        ║\n` +
+            `║  ⚔️ Vista a camisa e honre o nome da HUNTERS.                                                        ║\n` +
+            `║                                                                                                      ║\n` +
+            `╠══════════════════════════════════════════════════════════════════════════════════════════════════════╣\n` +
+            `║                                                                                                      ║\n` +
+            `║                     👑 "A GLÓRIA É CONQUISTADA POR QUEM LUTA AO LADO DA FAMÍLIA." 👑                ║\n` +
+            `║                                                                                                      ║\n` +
+            `║                              💜 SEJA MUITO BEM-VINDO À HUNTERS 💜                                   ║\n` +
+            `║                                                                                                      ║\n` +
+            `╚════════════════════════════════════ 👑 FAMÍLIA SOUZA • HUNTERS 🐺 ════════════════════════════════════╝`
+        )
+        .setFooter({ text: "👑 HUNTERS • Disciplina • União • Lealdade" })
+        .setTimestamp();
 
     await canal.send({ embeds: [welcomeEmbed] }).catch(err => console.error("Erro envio welcome:", err));
 }
@@ -212,18 +235,41 @@ client.on(Events.GuildMemberAdd, async (member) => {
     if (canal && canal.isTextBased()) {
         const totalMembros = member.guild.memberCount;
         const embedEntrada = new EmbedBuilder()
-            .setColor(CONFIG.embedColor || "#2ECC71")
+            .setColor("#8A2BE2")
+            .setThumbnail(member.user.displayAvatarURL({ dynamic: true }))
+            .setImage("https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80")
             .setDescription(
-                `👋\n` +
-                `**Seja bem-vindo(a)!**\n` +
-                `Olá <@${member.id}>, você acaba de entrar em **Hunters**.\n\n` +
-                `Estamos felizes em ter você por aqui.\n\n` +
-                `**Boas-vindas**\n` +
-                `<@${member.id}>\n` +
-                `**Organização:** Hunters\n` +
-                `**Servidor:** Familia Souza\n` +
-                `**Membros:** ${totalMembros}`
-            );
+                `╔════════════════════════════════════ 👑 FAMÍLIA SOUZA • HUNTERS 🐺 ════════════════════════════════════╗\n` +
+                `║                                                                                                      ║\n` +
+                `║                                   ✦ BEM-VINDO À FAMÍLIA HUNTERS ✦                                   ║\n` +
+                `║                                                                                                      ║\n` +
+                `║                                      🐺 "FORÇA • LEALDADE • RESPEITO" 🐺                            ║\n` +
+                `║                                                                                                      ║\n` +
+                `╠══════════════════════════════════════════════════════════════════════════════════════════════════════╣\n` +
+                `║                                                                                                      ║\n` +
+                `║  👤 MEMBRO............... ➜ <@${member.id}>                                                          ║\n` +
+                `║  🏷️ ORGANIZAÇÃO.......... ➜ HUNTERS                                                                  ║\n` +
+                `║  🌍 SERVIDOR............. ➜ Família Souza                                                            ║\n` +
+                `║  👥 MEMBROS.............. ➜ ${totalMembros}                                                          ║\n` +
+                `║                                                                                                      ║\n` +
+                `╠══════════════════════════════════════════════════════════════════════════════════════════════════════╣\n` +
+                `║                                                                                                      ║\n` +
+                `║  📖 Leia as regras do servidor.                                                                      ║\n` +
+                `║  🎯 Aguarde um Líder realizar seu registro.                                                          ║\n` +
+                `║  🎙️ Utilize a rádio oficial quando solicitado.                                                      ║\n` +
+                `║  🤝 Respeite todos os membros e a hierarquia.                                                        ║\n` +
+                `║  ⚔️ Vista a camisa e honre o nome da HUNTERS.                                                        ║\n` +
+                `║                                                                                                      ║\n` +
+                `╠══════════════════════════════════════════════════════════════════════════════════════════════════════╣\n` +
+                `║                                                                                                      ║\n` +
+                `║                     👑 "A GLÓRIA É CONQUISTADA POR QUEM LUTA AO LADO DA FAMÍLIA." 👑                ║\n` +
+                `║                                                                                                      ║\n` +
+                `║                              💜 SEJA MUITO BEM-VINDO À HUNTERS 💜                                   ║\n` +
+                `║                                                                                                      ║\n` +
+                `╚════════════════════════════════════ 👑 FAMÍLIA SOUZA • HUNTERS 🐺 ════════════════════════════════════╝`
+            )
+            .setFooter({ text: "👑 HUNTERS • Disciplina • União • Lealdade" })
+            .setTimestamp();
         await canal.send({ embeds: [embedEntrada] });
     }
 });
@@ -238,17 +284,41 @@ client.on(Events.MessageCreate, async (message) => {
         if (!isStaff) return message.reply({ content: "❌ Apenas Staff pode enviar o painel." });
 
         const embed = new EmbedBuilder()
-            .setColor(CONFIG.embedColor || "#2ECC71")
-            .setTitle("👑 PAINEL DE BOAS-VINDAS & REGISTRO — " + (CONFIG.organizationName || "Hunters"))
+            .setColor("#8A2BE2")
+            .setThumbnail(message.guild.iconURL({ dynamic: true }))
+            .setImage("https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80")
             .setDescription(
-                `👋\n` +
-                `**Seja bem-vindo(a)!**\n` +
-                `Olá, este é o Painel de Boas-Vindas e Registro da **Hunters**.\n\n` +
-                `Clique no botão **📝 Realizar Registro / Set** abaixo para iniciar seu cadastro e receber a sua Tag no Discord e no jogo.\n\n` +
-                `**Servidor:** Familia Souza\n` +
-                `**Rádio Oficial:** 633`
+                `╔════════════════════════════════════ 👑 FAMÍLIA SOUZA • HUNTERS 🐺 ════════════════════════════════════╗\n` +
+                `║                                                                                                      ║\n` +
+                `║                                   ✦ BEM-VINDO À FAMÍLIA HUNTERS ✦                                   ║\n` +
+                `║                                                                                                      ║\n` +
+                `║                                      🐺 "FORÇA • LEALDADE • RESPEITO" 🐺                            ║\n` +
+                `║                                                                                                      ║\n` +
+                `╠══════════════════════════════════════════════════════════════════════════════════════════════════════╣\n` +
+                `║                                                                                                      ║\n` +
+                `║  👤 MEMBRO............... ➜ Clique no botão abaixo para registrar                                    ║\n` +
+                `║  🏷️ ORGANIZAÇÃO.......... ➜ HUNTERS                                                                  ║\n` +
+                `║  🌍 SERVIDOR............. ➜ Família Souza                                                            ║\n` +
+                `║  👥 MEMBROS.............. ➜ ${message.guild.memberCount}                                             ║\n` +
+                `║                                                                                                      ║\n` +
+                `╠══════════════════════════════════════════════════════════════════════════════════════════════════════╣\n` +
+                `║                                                                                                      ║\n` +
+                `║  📖 Leia as regras do servidor.                                                                      ║\n` +
+                `║  🎯 Clique no botão **📝 Realizar Registro / Set** abaixo para iniciar seu cadastro.                ║\n` +
+                `║  🎙️ Utilize a rádio oficial quando solicitado (Rádio 633).                                          ║\n` +
+                `║  🤝 Respeite todos os membros e a hierarquia.                                                        ║\n` +
+                `║  ⚔️ Vista a camisa e honre o nome da HUNTERS.                                                        ║\n` +
+                `║                                                                                                      ║\n` +
+                `╠══════════════════════════════════════════════════════════════════════════════════════════════════════╣\n` +
+                `║                                                                                                      ║\n` +
+                `║                     👑 "A GLÓRIA É CONQUISTADA POR QUEM LUTA AO LADO DA FAMÍLIA." 👑                ║\n` +
+                `║                                                                                                      ║\n` +
+                `║                              💜 SEJA MUITO BEM-VINDO À HUNTERS 💜                                   ║\n` +
+                `║                                                                                                      ║\n` +
+                `╚════════════════════════════════════ 👑 FAMÍLIA SOUZA • HUNTERS 🐺 ════════════════════════════════════╝`
             )
-            .setFooter({ text: CONFIG.footer || "Clã Hunters & Família Souza" });
+            .setFooter({ text: "👑 HUNTERS • Disciplina • União • Lealdade" })
+            .setTimestamp();
 
         const row = new ActionRowBuilder().addComponents(
             new ButtonBuilder()
@@ -389,5 +459,3 @@ client.on(Events.InteractionCreate, async (interaction) => {
 });
 
 client.login(TOKEN);
-
-                
