@@ -40,7 +40,7 @@ const CONFIG = {
     "canalRegistroId": "123456789012345678",
     "canalAprovacaoId": "1515448473246498866",
     "canalLogsId": "1515448473246498866",
-    "canalEntradaSaidaId": "123456789012345678",
+    "canalEntradaSaidaId": "1535106331869184101",
     "canalAusenciaId": "1531070382365343774",
     "canalAusenciaLogsId": "1531670383483158700",
     "cargosAdminsAprovadores": [
@@ -64,7 +64,7 @@ const CONFIG = {
     "perguntaRegrasCincoZ": "O que é RDM, VDM e Amor à Vida na Cidade?",
     "perguntaInatividadecincoZ": "Ciente de SafeZone, Anti-Jogo e Inatividade?",
     "cargoCidadaoGeralId": "123456789012345691",
-    "cargoNaoRegistradoId": "123456789012345692",
+    "cargoNaoRegistradoId": "1533861590284238928",
     "prazoRegistroDias": 3,
     "grupos": [
         {
