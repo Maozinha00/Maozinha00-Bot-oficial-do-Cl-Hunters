@@ -40,7 +40,7 @@ const CONFIG = {
     "canalRegistroId": "123456789012345678",
     "canalAprovacaoId": "1515448473246498866",
     "canalLogsId": "1515448473246498866",
-    "canalEntradaSaidaId": "123456789012345678",
+    "canalEntradaSaidaId": "1535106331869184101",
     "canalAusenciaId": "1531070382365343774",
     "canalAusenciaLogsId": "1531670383483158700",
     "cargosAdminsAprovadores": [
@@ -227,7 +227,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
         const selectMenu = new StringSelectMenuBuilder()
             .setCustomId('select_grupo')
             .setPlaceholder('Selecione sua Tag / Grupo...')
-            .addOptions((currentConfig.grupos || []).map(g => ({
+            .addOptions((CONFIG.grupos || []).map(g => ({
                 label: (g.name + " " + g.tag).substring(0, 100),
                 value: g.roleId,
                 emoji: g.emoji || '🎯',
