@@ -41,7 +41,7 @@ const CONFIG = {
     "canalRegistroId": "123456789012345678",
     "canalAprovacaoId": "1515448473246498866",
     "canalLogsId": "1515448473246498866",
-    "canalEntradaSaidaId": "1535106331869184101",
+    "canalEntradaSaidaId": "123456789012345678",
     "canalAusenciaId": "1531070382365343774",
     "canalAusenciaLogsId": "1531670383483158700",
     "cargosAdminsAprovadores": [
@@ -185,11 +185,11 @@ async function enviarWelcomeEmbed(member, tag, nome, idJogo) {
     const welcomeEmbed = new EmbedBuilder()
         .setColor(CONFIG.embedColor || "#2ECC71")
         .setDescription(
-            `👋 **Seja bem-vindo(a)!**\n\n` +
-            `Olá <@${member.id}>, você acaba de entrar em **Hunters**.\n` +
+            `👋\n` +
+            `**Seja bem-vindo(a)!**\n` +
+            `Olá <@${member.id}>, você acaba de entrar em **Hunters**.\n\n` +
             `Estamos felizes em ter você por aqui.\n\n` +
-            `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
-            `👥 **Boas-vindas**\n` +
+            `**Boas-vindas**\n` +
             `<@${member.id}>\n` +
             `**Organização:** Hunters\n` +
             `**Servidor:** Familia Souza\n` +
@@ -214,11 +214,11 @@ client.on(Events.GuildMemberAdd, async (member) => {
         const embedEntrada = new EmbedBuilder()
             .setColor(CONFIG.embedColor || "#2ECC71")
             .setDescription(
-                `👋 **Seja bem-vindo(a)!**\n\n` +
-                `Olá <@${member.id}>, você acaba de entrar em **Hunters**.\n` +
+                `👋\n` +
+                `**Seja bem-vindo(a)!**\n` +
+                `Olá <@${member.id}>, você acaba de entrar em **Hunters**.\n\n` +
                 `Estamos felizes em ter você por aqui.\n\n` +
-                `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
-                `👥 **Boas-vindas**\n` +
+                `**Boas-vindas**\n` +
                 `<@${member.id}>\n` +
                 `**Organização:** Hunters\n` +
                 `**Servidor:** Familia Souza\n` +
