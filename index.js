@@ -40,7 +40,7 @@ const CONFIG = {
     "canalRegistroId": "123456789012345678",
     "canalAprovacaoId": "1515448473246498866",
     "canalLogsId": "1515448473246498866",
-    "canalEntradaSaidaId": "1535106331869184101",
+    "canalEntradaSaidaId": "123456789012345678",
     "canalAusenciaId": "1531070382365343774",
     "canalAusenciaLogsId": "1531670383483158700",
     "cargosAdminsAprovadores": [
@@ -125,10 +125,21 @@ function formatarApelido(tag, nome, id) {
 async function enviarRegrasPV(user) {
     const embedPV = new EmbedBuilder()
         .setColor(CONFIG.embedColor || "#2ECC71")
+        .setAuthor({ name: CONFIG.authorName || "👑 FAMÍLIA SOUZA INFINITA 👑" })
         .setTitle("📜 REGRAS OBRIGATÓRIAS - CLÃ HUNTERS & FAMÍLIA SOUZA")
-        .setDescription("Olá <@" + user.id + ">!\n\n" + CONFIG.regrasTexto + "\n\n📖 **Livro Oficial de Regras FiveZ:** " + (CONFIG.regrasLink || "https://fivez.gitbook.io/fivez-regras") + "\n\n**Confirme a leitura no botão abaixo:**")
+        .setDescription("Olá <@" + user.id + ">!
+
+" + CONFIG.regrasTexto + "
+
+📖 **Livro Oficial de Regras FiveZ:** " + (CONFIG.regrasLink || "https://fivez.gitbook.io/fivez-regras") + "
+
+**Confirme a leitura clicando no botão abaixo:**")
         .setImage(CONFIG.bannerUrl || "https://i.imgur.com/B21O3Ok.gif")
-        .setFooter({ text: CONFIG.footer });
+        .setFooter({ text: CONFIG.footer || "FiveZ & Lumenfall • Sistema Automático Anti-Queda" });
+
+    if (CONFIG.thumbnailUrl) {
+        embedPV.setThumbnail(CONFIG.thumbnailUrl);
+    }
 
     const row = new ActionRowBuilder().addComponents(
         new ButtonBuilder()
@@ -214,6 +225,33 @@ client.on(Events.MessageCreate, async (message) => {
         );
 
         await message.channel.send({ embeds: [embedAusencia], components: [rowAusencia] });
+    }
+
+    if (lower === '!regras') {
+        const ok = await enviarRegrasPV(message.author);
+        if (ok) {
+            return message.reply({ content: "📬 **Regras enviadas no seu PV (Mensagem Direta)!** Verifique suas DMs para ler e aceitar." });
+        } else {
+            const embedPV = new EmbedBuilder()
+                .setColor(CONFIG.embedColor || "#2ECC71")
+                .setAuthor({ name: CONFIG.authorName || "👑 FAMÍLIA SOUZA INFINITA 👑" })
+                .setTitle("📜 REGRAS OBRIGATÓRIAS - CLÃ HUNTERS & FAMÍLIA SOUZA")
+                .setDescription("Olá <@" + message.author.id + ">!
+
+" + CONFIG.regrasTexto + "
+
+📖 **Livro Oficial de Regras FiveZ:** " + (CONFIG.regrasLink || "https://fivez.gitbook.io/fivez-regras"))
+                .setImage(CONFIG.bannerUrl || "https://i.imgur.com/B21O3Ok.gif")
+                .setFooter({ text: CONFIG.footer });
+
+            const row = new ActionRowBuilder().addComponents(
+                new ButtonBuilder()
+                    .setCustomId("btn_confirmar_regras_pv")
+                    .setLabel("Li e Aceito as Regras")
+                    .setStyle(ButtonStyle.Success)
+            );
+            return message.reply({ content: "⚠️ Seu PV está fechado. Confira as regras abaixo:", embeds: [embedPV], components: [row] });
+        }
     }
 });
 
