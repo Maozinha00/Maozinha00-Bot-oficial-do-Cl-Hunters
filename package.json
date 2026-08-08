@@ -2,10 +2,10 @@
   "name": "bot-hunters-souza",
   "version": "1.0.0",
   "description": "Bot Oficial de Registro e Ausencias para Discord v14",
-  "main": "index.js",
-  "type": "module",
+  "main": "bot-hunters-cjs.js",
+  "type": "commonjs",
   "scripts": {
-    "start": "node index.js"
+    "start": "node bot-hunters-cjs.js"
   },
   "dependencies": {
     "discord.js": "^14.14.1",
